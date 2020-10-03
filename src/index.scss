@@ -1,0 +1,25 @@
+.greeting {
+  &-enter-from {
+    opacity: 0;
+  }
+
+  &-enter-active {
+    transition: opacity 5000ms ease;
+  }
+
+  &-enter-to {
+    opacity: 1;
+  }
+
+  &-leave-from {
+    opacity: 1;
+  }
+
+  &-leave-active {
+    transition: opacity 700ms ease-out;
+  }
+
+  &-leave-to {
+    opacity: 0;
+  }
+}
