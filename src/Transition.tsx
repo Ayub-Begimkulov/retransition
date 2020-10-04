@@ -129,7 +129,7 @@ function whenTransitionEnds(
   cb: () => void
 ) {
   const { type, timeout, propCount } = getTransitionInfo(el, expectedType);
-  console.log(type, timeout);
+
   if (!type) {
     return cb();
   }
