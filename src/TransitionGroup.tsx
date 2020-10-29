@@ -22,6 +22,18 @@ function forceReflow() {
   return document.body.offsetHeight;
 }
 
+function areArraysEqual(arr1: any[], arr2: any[]) {
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 interface TransitionGroupProps {
   name?: string;
   moveClass?: string;
@@ -33,6 +45,8 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
   children,
 }) => {
   const isFirst = useRef(true);
+  const childrenElements = useRef<Element[]>([]);
+  const prevChildrenElements = useRef<Element[]>([]);
 
   useLayoutEffect(() => {
     if (isFirst.current) {
@@ -40,11 +54,17 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
       return;
     }
     if (rootEl.current) {
-      const childrenElements = [...rootEl.current.children];
-      childrenElements.forEach(el => {
+      prevChildrenElements.current = childrenElements.current;
+      childrenElements.current = [...rootEl.current.children];
+      if (
+        areArraysEqual(childrenElements.current, prevChildrenElements.current)
+      ) {
+        return;
+      }
+      childrenElements.current.forEach(el => {
         newPositionMap.set(el, el.getBoundingClientRect());
       });
-      const movedChildren = childrenElements.filter(applyTranslation);
+      const movedChildren = childrenElements.current.filter(applyTranslation);
 
       forceReflow();
 
@@ -59,7 +79,7 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
         });
       });
     }
-  });
+  }, [children]);
 
   const rootEl = useRef<HTMLDivElement>(null);
 
@@ -82,16 +102,5 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
     </div>
   );
 };
-
-const guard = Symbol("guard");
-
-// @ts-ignore
-function useLazyRef<T>(value: () => T) {
-  const ref = useRef<T | typeof guard>(guard);
-  if (ref.current === guard) {
-    ref.current = value();
-  }
-  return ref as React.MutableRefObject<T>;
-}
 
 export default TransitionGroup;

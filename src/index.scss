@@ -1,26 +1,20 @@
 .greeting {
-  &-enter-from {
+  &-enter-from,
+  &-leave-to {
     opacity: 0;
   }
 
   &-enter-active {
-    transition: opacity 5000ms ease;
-  }
-
-  &-enter-to {
-    opacity: 1;
-  }
-
-  &-leave-from {
-    opacity: 1;
+    transition: opacity 500ms ease;
   }
 
   &-leave-active {
-    transition: opacity 700ms ease-out;
+    transition: opacity 700ms ease;
   }
 
-  &-leave-to {
-    opacity: 0;
+  &-enter-to,
+  &-leave-from {
+    opacity: 1;
   }
 }
 
