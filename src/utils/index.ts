@@ -34,10 +34,3 @@ export function removeClass(el: Element, ...classes: string[]) {
 export function hasClass(el: Element, className: string) {
   return el.classList.contains(className);
 }
-
-/* export function classNames(obj: Record<string, boolean>) {
-  return Object.entries(obj).reduce(
-    (acc, [k, v]) => (v ? acc + k + ' ' : acc),
-    ''
-  );
-} */

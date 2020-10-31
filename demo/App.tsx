@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import Transition from "Transition";
-import TransitionGroup from "TransitionGroup";
+import { Transition, TransitionGroup } from "../src";
 
 import "./index.scss";
 
@@ -26,15 +25,17 @@ const App = () => {
 
   return (
     <>
-      <div style={{ height: 100 }}>
+      <div style={{ height: 300 }}>
         <button
           onClick={() => setVisible(v => !v)}
-          style={{ marginBottom: 40 }}
+          style={{ marginBottom: 20 }}
         >
           Toggle
         </button>
-        <Transition visible={visible} name="greeting" appear>
-          <div className="greeting">Hello world</div>
+        <Transition visible={visible} name="fade" appear>
+          <div style={{ width: 200, height: 200, background: "black" }}>
+            Hello world
+          </div>
         </Transition>
       </div>
       <div>
