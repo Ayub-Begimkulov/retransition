@@ -4,14 +4,6 @@ import TransitionGroup from "TransitionGroup";
 
 import "./index.scss";
 
-/* function usePrevious<T>(value: T) {
-  const ref = useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-} */
-
 let nextNum = 10;
 
 const App = () => {

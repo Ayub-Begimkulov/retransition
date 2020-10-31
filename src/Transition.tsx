@@ -14,19 +14,6 @@ import {
   once,
 } from "utils";
 
-function useIsMounted() {
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  return isMounted;
-}
-
 interface TransitionProps {
   visible: boolean;
   name?: string;
@@ -53,6 +40,31 @@ interface TransitionProps {
   onAppear?: (el: HTMLElement /* , done: () => void */) => void;
   onAfterAppear?: (el: HTMLElement) => void;
   // onAppearCancelled?: (el: HTMLElement) => void;
+}
+
+function useIsMounted() {
+  const isMounted = useRef(false);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+  return isMounted;
+}
+
+function usePrevious<T>(value: T) {
+  const prevRef = useRef<T | null>(null);
+  useEffect(() => {
+    prevRef.current = value;
+  });
+  return prevRef;
+}
+
+function useLatest<T>(value: T) {
+  const latestRef = useRef<T>(value);
+  latestRef.current = value;
+  return latestRef;
 }
 
 const Transition: React.FC<TransitionProps> = ({
@@ -83,97 +95,68 @@ const Transition: React.FC<TransitionProps> = ({
   const [localVisible, setLocalVisible] = useState(visible);
   const elRef = useRef<HTMLElement | null>(null);
   const isMounted = useIsMounted();
+  const previousVisible = usePrevious(visible);
+  // wrapping `localVisible` with ref to prevent unnecessary
+  // effect calls
+  const localVisibleRef = useLatest(localVisible);
+
+  // const localVisibleAndVisibleAreDifferent = useLatest(
+  //   localVisible !== previousVisible.current
+  // );
+
+  // console.log(localVisibleAndVisibleAreDifferent);
 
   const finishEnter = useRef<(() => void) | null>(null);
   const finishLeave = useRef<(() => void) | null>(null);
 
-  useLayoutEffect(() => {
-    if (visible) {
-      setLocalVisible(true);
-    } else if (elRef.current) {
-      if (finishEnter.current) {
-        finishEnter.current();
+  const performEnter = useCallback(
+    (el: HTMLElement) => {
+      if (!appear && !isMounted.current) {
+        return;
       }
-      const el = elRef.current;
-      addClass(el, leaveFromClass);
-      addClass(el, leaveActiveClass);
-      onBeforeLeave && onBeforeLeave(el);
+      if (finishLeave.current) {
+        finishLeave.current();
+      }
+      const isAppear = appear && !isMounted.current;
+      const [
+        beforeHook,
+        hook,
+        afterHook,
+        fromClass,
+        activeClass,
+        toClass,
+      ] = isAppear
+        ? [
+            onBeforeAppear,
+            onAppear,
+            onAfterAppear,
+            appearFromClass,
+            appearActiveClass,
+            appearToClass,
+          ]
+        : [
+            onBeforeEnter,
+            onEnter,
+            onAfterEnter,
+            enterFromClass,
+            enterActiveClass,
+            enterToClass,
+          ];
+      beforeHook && beforeHook(el);
+      addClass(el, fromClass);
+      addClass(el, activeClass);
       nextFrame(() => {
-        removeClass(el, leaveFromClass);
-        addClass(el, leaveToClass);
-        onLeave && onLeave(el);
-        const onEnd = (finishLeave.current = once(() => {
-          removeClass(el, leaveToClass);
-          removeClass(el, leaveActiveClass);
-          setLocalVisible(false);
-          onAfterLeave && onAfterLeave(el);
-          finishLeave.current = null;
+        removeClass(el, fromClass);
+        addClass(el, toClass);
+        hook && hook(el);
+        const onEnd = (finishEnter.current = once(() => {
+          removeClass(el, toClass);
+          removeClass(el, activeClass);
+          afterHook && afterHook(el);
+          finishEnter.current = null;
         }));
         whenTransitionEnds(el, onEnd, type);
       });
-    }
-  }, [
-    type,
-    visible,
-    leaveActiveClass,
-    leaveFromClass,
-    leaveToClass,
-    onBeforeLeave,
-    onLeave,
-    onAfterLeave,
-  ]);
-
-  const ref = useCallback(
-    (el: HTMLElement | null) => {
-      elRef.current = el;
-      if (el) {
-        if (!appear && !isMounted.current) {
-          return;
-        }
-        if (finishLeave.current) {
-          finishLeave.current();
-        }
-        const isAppear = appear && !isMounted.current;
-        const [
-          beforeHook,
-          hook,
-          afterHook,
-          fromClass,
-          activeClass,
-          toClass,
-        ] = isAppear
-          ? [
-              onBeforeAppear,
-              onAppear,
-              onAfterAppear,
-              appearFromClass,
-              appearActiveClass,
-              appearToClass,
-            ]
-          : [
-              onBeforeEnter,
-              onEnter,
-              onAfterEnter,
-              enterFromClass,
-              enterActiveClass,
-              enterToClass,
-            ];
-        addClass(el, fromClass);
-        addClass(el, activeClass);
-        beforeHook && beforeHook(el);
-        nextFrame(() => {
-          removeClass(el, fromClass);
-          addClass(el, toClass);
-          hook && hook(el);
-          const onEnd = (finishEnter.current = once(() => {
-            removeClass(el, toClass);
-            removeClass(el, activeClass);
-            afterHook && afterHook(el);
-            finishEnter.current = null;
-          }));
-          whenTransitionEnds(el, onEnd, type);
-        });
-      }
     },
     [
       type,
@@ -192,6 +175,68 @@ const Transition: React.FC<TransitionProps> = ({
       onEnter,
       onAfterEnter,
     ]
+  );
+
+  const performLeave = useCallback(
+    (el: HTMLElement) => {
+      if (finishEnter.current) {
+        finishEnter.current();
+      }
+      onBeforeLeave && onBeforeLeave(el);
+      addClass(el, leaveFromClass);
+      addClass(el, leaveActiveClass);
+      nextFrame(() => {
+        removeClass(el, leaveFromClass);
+        addClass(el, leaveToClass);
+        onLeave && onLeave(el);
+        const onEnd = (finishLeave.current = once(() => {
+          removeClass(el, leaveToClass);
+          removeClass(el, leaveActiveClass);
+          setLocalVisible(false);
+          onAfterLeave && onAfterLeave(el);
+          finishLeave.current = null;
+        }));
+        whenTransitionEnds(el, onEnd, type);
+      });
+    },
+    [
+      type,
+      leaveActiveClass,
+      leaveFromClass,
+      leaveToClass,
+      onBeforeLeave,
+      onLeave,
+      onAfterLeave,
+    ]
+  );
+
+  useLayoutEffect(() => {
+    if (visible) {
+      // if previous visible not equal to local visible prop
+      // then it means that leave animation was cancelled
+      // and we should perform enter ourself because
+      // ref callback won't be called since element isn't
+      // unmounted.
+      if (previousVisible.current !== localVisibleRef.current) {
+        elRef.current && performEnter(elRef.current);
+      }
+      setLocalVisible(true);
+    } else if (elRef.current) {
+      if (finishEnter.current) {
+        finishEnter.current();
+      }
+      performLeave(elRef.current);
+    }
+  }, [visible, performLeave, performEnter, previousVisible, localVisibleRef]);
+
+  const ref = useCallback(
+    (el: HTMLElement | null) => {
+      elRef.current = el;
+      if (el) {
+        performEnter(el);
+      }
+    },
+    [performEnter]
   );
 
   if (!localVisible) return null;
