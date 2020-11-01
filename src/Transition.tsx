@@ -1,10 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useIsMounted, useLatest, usePrevious } from "hooks";
 import {
   addClass,
   nextFrame,
@@ -14,7 +9,7 @@ import {
   once,
 } from "utils";
 
-interface TransitionProps {
+export interface TransitionProps {
   visible: boolean;
   name?: string;
   type?: CSSTransitionType;
@@ -40,31 +35,6 @@ interface TransitionProps {
   onAppear?: (el: HTMLElement /* , done: () => void */) => void;
   onAfterAppear?: (el: HTMLElement) => void;
   // onAppearCancelled?: (el: HTMLElement) => void;
-}
-
-function useIsMounted() {
-  const isMounted = useRef(false);
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-  return isMounted;
-}
-
-function usePrevious<T>(value: T) {
-  const prevRef = useRef<T | null>(null);
-  useEffect(() => {
-    prevRef.current = value;
-  });
-  return prevRef;
-}
-
-function useLatest<T>(value: T) {
-  const latestRef = useRef<T>(value);
-  latestRef.current = value;
-  return latestRef;
 }
 
 const Transition: React.FC<TransitionProps> = ({
@@ -239,13 +209,14 @@ const Transition: React.FC<TransitionProps> = ({
     [performEnter]
   );
 
+  console.log("render");
+
   if (!localVisible) return null;
 
   const child = React.Children.only(children) as React.ReactElement;
 
   const el = React.cloneElement(child, {
     ref,
-    ...child.props,
   });
 
   return el;

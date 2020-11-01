@@ -1,4 +1,7 @@
 import React, { useCallback, useLayoutEffect, useRef } from "react";
+import { TransitionProps } from "Transition";
+import { usePrevious } from "hooks";
+import { addClass, removeClass } from "utils";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -34,48 +37,83 @@ function areArraysEqual(arr1: any[], arr2: any[]) {
   return true;
 }
 
-interface TransitionGroupProps {
-  name?: string;
+interface TransitionGroupProps extends Omit<TransitionProps, "visible"> {
+  tag?: string;
   moveClass?: string;
+  className?: string;
 }
 
 const TransitionGroup: React.FC<TransitionGroupProps> = ({
   name = "transition",
   moveClass,
   children,
+  className,
 }) => {
   const isFirst = useRef(true);
   const childrenElements = useRef<Element[]>([]);
   const prevChildrenElements = useRef<Element[]>([]);
+
+  const childrenArray = React.Children.toArray(children);
+  const prevChildren = usePrevious(childrenArray);
+
+  const areChildrenSame = ((arr1, arr2) => {
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
+      return false;
+    }
+    if (arr1.length !== arr2.length) {
+      return false;
+    }
+    return arr1.every(
+      (item, i) =>
+        item === arr2[i] || (item as any).key === (arr2[i] as any).key
+    );
+  })(prevChildren.current, childrenArray);
+
+  console.log(areChildrenSame);
 
   useLayoutEffect(() => {
     if (isFirst.current) {
       isFirst.current = false;
       return;
     }
+
     if (rootEl.current) {
       prevChildrenElements.current = childrenElements.current;
       childrenElements.current = [...rootEl.current.children];
       if (
         areArraysEqual(childrenElements.current, prevChildrenElements.current)
       ) {
+        console.log("return");
         return;
       }
+      console.log("not return");
+      // const prevChildrenSet = new Set(prevChildrenElements.current);
+      // const childrenSet = new Set(childrenElements.current);
+      // const removedElements = prevChildrenElements.current.filter(
+      //   child => !childrenSet.has(child)
+      // );
+      // const addedElements = childrenElements.current.filter(
+      //   child => !prevChildrenSet.has(child)
+      // );
+      // console.log({ addedElements, removedElements });
+      // childrenElements.current.forEach((el: any) => {
+      //   el._pendingCb && el._pendingCb();
+      //   el._pendingCb = null;
+      // });
       childrenElements.current.forEach(el => {
         newPositionMap.set(el, el.getBoundingClientRect());
       });
       const movedChildren = childrenElements.current.filter(applyTranslation);
 
       forceReflow();
-
       const moveCls = moveClass || `${name}-move`;
       movedChildren.forEach(child => {
-        child.classList.add(moveCls);
+        addClass(child, moveCls);
         positionMap.set(child, newPositionMap.get(child)!);
         (child as HTMLElement).style.transitionDuration = "";
         (child as HTMLElement).style.transform = "";
         child.addEventListener("transitionend", () => {
-          child.classList.remove(moveCls);
+          removeClass(child, moveCls);
         });
       });
     }
@@ -90,13 +128,12 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
   }, []);
 
   return (
-    <div ref={rootEl}>
+    <div className={className} ref={rootEl}>
       {React.Children.toArray(children)
         .filter(React.isValidElement)
         .map((child: React.ReactElement) => {
           return React.cloneElement(child, {
             ref,
-            ...child.props,
           });
         })}
     </div>
