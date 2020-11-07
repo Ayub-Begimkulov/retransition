@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from "react";
 import { TransitionProps } from "Transition";
-import { usePrevious } from "hooks";
+// import { usePrevious } from "hooks";
 import { addClass, removeClass } from "utils";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -53,10 +53,10 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
   const childrenElements = useRef<Element[]>([]);
   const prevChildrenElements = useRef<Element[]>([]);
 
-  const childrenArray = React.Children.toArray(children);
-  const prevChildren = usePrevious(childrenArray);
+  // const childrenArray = React.Children.toArray(children);
+  // const prevChildren = usePrevious(childrenArray);
 
-  const areChildrenSame = ((arr1, arr2) => {
+  /* const areChildrenSame = ((arr1, arr2) => {
     if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
       return false;
     }
@@ -67,9 +67,9 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
       (item, i) =>
         item === arr2[i] || (item as any).key === (arr2[i] as any).key
     );
-  })(prevChildren.current, childrenArray);
+  })(prevChildren.current, childrenArray); */
 
-  console.log(areChildrenSame);
+  // console.log(areChildrenSame);
 
   useLayoutEffect(() => {
     if (isFirst.current) {
@@ -83,10 +83,10 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
       if (
         areArraysEqual(childrenElements.current, prevChildrenElements.current)
       ) {
-        console.log("return");
+        // console.log("return");
         return;
       }
-      console.log("not return");
+      // console.log("not return");
       // const prevChildrenSet = new Set(prevChildrenElements.current);
       // const childrenSet = new Set(childrenElements.current);
       // const removedElements = prevChildrenElements.current.filter(

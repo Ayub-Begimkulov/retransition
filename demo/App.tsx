@@ -40,6 +40,8 @@ const App = () => {
     setArr(arr => [...arr.slice(0, idx), ...arr.slice(idx + 1)]);
   };
 
+  console.log("app render");
+
   return (
     <div style={{ display: "flex" }}>
       <div style={{ flex: 1 }}>

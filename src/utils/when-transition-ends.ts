@@ -6,7 +6,7 @@ const TRANSITION = "transition";
 export type CSSTransitionType = typeof ANIMATION | typeof TRANSITION;
 
 export function whenTransitionEnds(
-  el: HTMLElement,
+  el: Element,
   cb: () => void,
   expectedType?: CSSTransitionType
 ) {
