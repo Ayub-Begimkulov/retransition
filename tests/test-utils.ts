@@ -26,7 +26,7 @@ export function setupPuppeteer() {
   let page: puppeteer.Page;
 
   beforeEach(async () => {
-    browser = await puppeteer.launch({});
+    browser = await puppeteer.launch({ devtools: true });
     page = await browser.newPage();
 
     page.on("console", e => {

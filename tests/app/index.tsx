@@ -4,7 +4,6 @@ import Transition, { TransitionProps } from "Transition";
 
 const defaultProps = Object.freeze({
   visible: false,
-  name: "test" as const,
 });
 
 export const App = () => {
@@ -27,12 +26,11 @@ export const App = () => {
       >
         Toggle
       </button>
-      <Transition {...props}>
-        <div
-          id="transition-element"
-          style={{ width: 200, height: 200, background: "black" }}
-        ></div>
-      </Transition>
+      <div id="container">
+        <Transition {...props}>
+          <div id="transition-element"></div>
+        </Transition>
+      </div>
     </>
   );
 };

@@ -6,13 +6,31 @@
     <title>Transition</title>
   </head>
   <style>
-    .test-enter-from, .test-leave-to {
+    .transition-enter-from,
+    .transition-leave-to,
+    .test-enter-from,
+    .test-appear-from,
+    .test-leave-to,
+    .enter-step-1,
+    .leave-step-3 {
       opacity: 0;
     }
-    .test-enter-active {
+    .transition-enter-active,
+    .transition-leave-active,
+    .test-enter-active,
+    .test-appear-active,
+    .test-leave-active,
+    .enter-step-2,
+    .leave-step-2 {
       transition: opacity 50ms ease;
     }
-    .test-enter-to, .test-leave-from {
+    .transition-enter-to,
+    .transition-leave-from,
+    .test-enter-to,
+    .test-appear-to,
+    .test-leave-from,
+    .enter-step-3,
+    .leave-step-1 {
       opacity: 1;
     }
   </style>

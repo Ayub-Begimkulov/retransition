@@ -3,10 +3,10 @@ export { whenTransitionEnds } from "./when-transition-ends";
 export type { CSSTransitionType } from "./when-transition-ends";
 
 export function once<T extends AnyFunction>(fn: T) {
-  let called = false;
+  let invoked = false;
   return function (...args: Parameters<T>) {
-    if (called) return;
-    called = true;
+    if (invoked) return;
+    invoked = true;
     fn.apply(null, args);
   };
 }
