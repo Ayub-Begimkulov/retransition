@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useReducer, useState } from "react";
 import ReactDOM from "react-dom";
 import Transition, { TransitionProps } from "Transition";
 
@@ -6,7 +6,10 @@ const defaultProps = Object.freeze({
   visible: false,
 });
 
+const w = window as any;
+
 export const App = () => {
+  const [mounted, setMounted] = useState(false);
   const [props, setProps] = useReducer(
     (state: TransitionProps, newState: Partial<TransitionProps>) => ({
       ...state,
@@ -15,9 +18,13 @@ export const App = () => {
     defaultProps
   );
 
-  (window as any).setProps = setProps;
+  w.mount = (...args: Parameters<typeof setProps>) => {
+    setMounted(true);
+    setProps(...args);
+  };
+  w.setProps = setProps;
 
-  return (
+  return mounted ? (
     <>
       <button
         id="btn"
@@ -32,7 +39,7 @@ export const App = () => {
         </Transition>
       </div>
     </>
-  );
+  ) : null;
 };
 
 ReactDOM.render(<App />, document.getElementById("app"));

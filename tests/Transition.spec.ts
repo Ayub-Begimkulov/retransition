@@ -3,11 +3,10 @@ import { TransitionProps } from "Transition";
 import { AnyFunction } from "types";
 import { setupPuppeteer } from "./test-utils";
 
-jest.setTimeout(100000);
+jest.setTimeout(1_000_000);
 
 describe("Transition", () => {
   const { page, timeout, nextFrame, html, classList, click } = setupPuppeteer();
-
   const baseUrl = `file://${path.resolve(__dirname, "dist", "index.html")}`;
 
   const duration = 50;
@@ -15,7 +14,7 @@ describe("Transition", () => {
 
   const transitionFinish = (time = duration) => timeout(time + buffer);
 
-  const updateProps = (props: Partial<TransitionProps>) => {
+  const updateProps = (props: Partial<TransitionProps> = {}) => {
     const keys = Object.keys(props);
     Object.entries(props)
       .filter(([, value]) => typeof value === "function")
@@ -27,23 +26,28 @@ describe("Transition", () => {
     );
     return page().evaluate(
       (props, keys: string[]) => {
-        debugger;
         const resultProps = {} as any;
         keys.forEach(key => {
           if (props[key] !== undefined) {
             resultProps[key] = props[key];
           } else {
-            debugger;
-            // @ts-ignore
-            console.log(window[key], typeof window[key]);
-            resultProps[key] = (window as any)[key];
+            resultProps[key] = function () {
+              (window as any)[key]();
+            };
           }
         });
-        (window as any).setProps(props);
+        (window as any).setProps(resultProps);
       },
       rest as any,
       keys
     );
+  };
+
+  const mount = (props?: Partial<TransitionProps>) => {
+    updateProps(props);
+    return page().evaluate(() => {
+      (window as any).mount();
+    });
   };
 
   beforeEach(async () => {
@@ -51,42 +55,8 @@ describe("Transition", () => {
     await page().waitForSelector("#app");
   });
 
-  it("test asdf", async () => {
-    page().evaluate(() => {
-      debugger;
-    });
-    const spy = jest.fn();
-    await updateProps({ onBeforeEnter: spy });
-    // enter
-    await click("#btn");
-    expect(await classList("#transition-element")).toEqual([
-      "transition-enter-from",
-      "transition-enter-active",
-    ]);
-    await nextFrame();
-    expect(await classList("#transition-element")).toEqual([
-      "transition-enter-active",
-      "transition-enter-to",
-    ]);
-    await transitionFinish();
-    expect(await classList("#transition-element")).toEqual([]);
-    expect(spy).toBeCalled();
-    // leave
-    await click("#btn");
-    expect(await classList("#transition-element")).toEqual([
-      "transition-leave-from",
-      "transition-leave-active",
-    ]);
-    await nextFrame();
-    expect(await classList("#transition-element")).toEqual([
-      "transition-leave-active",
-      "transition-leave-to",
-    ]);
-    await transitionFinish();
-    expect(await html("#container")).toBe("");
-  });
-
   it("basic transition", async () => {
+    await mount();
     // enter
     await click("#btn");
     expect(await classList("#transition-element")).toEqual([
@@ -117,7 +87,7 @@ describe("Transition", () => {
   });
 
   it("named transition", async () => {
-    await updateProps({ name: "test" });
+    await mount({ name: "test" });
 
     // enter
     await click("#btn");
@@ -157,7 +127,7 @@ describe("Transition", () => {
       leaveActiveClass: "leave-step-2",
       leaveToClass: "leave-step-3",
     };
-    await updateProps(classes);
+    await mount(classes);
 
     // enter
     await click("#btn");
@@ -188,9 +158,8 @@ describe("Transition", () => {
     expect(await html("#container")).toBe("");
   });
 
-  // TODO find a way to set props before mount
-  xit("appear", async () => {
-    await updateProps({
+  it("appear", async () => {
+    await mount({
       name: "test",
       appear: true,
       visible: true,
@@ -227,6 +196,7 @@ describe("Transition", () => {
     expect(await html("#container")).toBe("");
 
     // enter;
+    await click("#btn");
     expect(await classList("#transition-element")).toEqual([
       "test-enter-from",
       "test-enter-active",
@@ -240,8 +210,132 @@ describe("Transition", () => {
     expect(await classList("#transition-element")).toEqual([]);
   });
 
-  it.todo("transition events");
-  it.todo("transition events w/ appear");
+  it("transition events", async () => {
+    const onBeforeEnter = jest.fn();
+    const onEnter = jest.fn();
+    const onAfterEnter = jest.fn();
+    const onBeforeLeave = jest.fn();
+    const onLeave = jest.fn();
+    const onAfterLeave = jest.fn();
+
+    await mount({
+      name: "test",
+      onBeforeEnter: onBeforeEnter,
+      onEnter: onEnter,
+      onAfterEnter: onAfterEnter,
+      onBeforeLeave: onBeforeLeave,
+      onLeave: onLeave,
+      onAfterLeave: onAfterLeave,
+    });
+
+    // enter
+    await click("#btn");
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-from",
+      "test-enter-active",
+    ]);
+    expect(onBeforeEnter).toBeCalledTimes(1);
+    expect(onEnter).toBeCalledTimes(1);
+    expect(onAfterEnter).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterEnter).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+
+    // leave
+    await click("#btn");
+    expect(onBeforeLeave).toBeCalledTimes(1);
+    expect(onLeave).toBeCalledTimes(1);
+    expect(onAfterLeave).not.toBeCalled();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-from",
+      "test-leave-active",
+    ]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterLeave).toBeCalledTimes(1);
+    expect(await html("#container")).toBe("");
+  });
+
+  xit("transition events w/ appear", async () => {
+    const onBeforeEnter = jest.fn();
+    const onEnter = jest.fn();
+    const onAfterEnter = jest.fn();
+    const onBeforeLeave = jest.fn();
+    const onLeave = jest.fn();
+    const onAfterLeave = jest.fn();
+    const onBeforeAppear = jest.fn();
+    const onAppear = jest.fn();
+    const onAfterAppear = jest.fn();
+
+    await mount({
+      visible: true,
+      name: "test",
+      appear: true,
+      onBeforeEnter,
+      onEnter,
+      onAfterEnter,
+      onBeforeLeave,
+      onLeave,
+      onAfterLeave,
+      onBeforeAppear,
+      onAppear,
+      onAfterAppear,
+    });
+
+    // await page().waitForSelector("#transition-element");
+
+    // expect(onBeforeAppear).toBeCalledTimes(1);
+    // expect(onAppear).toBeCalledTimes(1);
+    // expect(onAfterAppear).not.toBeCalled();
+
+    await transitionFinish();
+    // expect(onAfterAppear).toBeCalledTimes(1);
+
+    // leave
+    await click("#btn");
+    // expect(onBeforeLeave).toBeCalledTimes(1);
+    // expect(onLeave).toBeCalledTimes(1);
+    // expect(onAfterLeave).not.toBeCalled();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-from",
+      "test-leave-active",
+    ]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    // expect(onAfterLeave).toBeCalledTimes(1);
+    expect(await html("#container")).toBe("");
+
+    // enter
+    await click("#btn");
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-from",
+      "test-enter-active",
+    ]);
+    // expect(onBeforeEnter).toBeCalledTimes(1);
+    // expect(onEnter).toBeCalledTimes(1);
+    // expect(onAfterEnter).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    // expect(onAfterEnter).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+  });
   it.todo("no transition detected");
   it.todo("animation");
   it.todo("explicit type");

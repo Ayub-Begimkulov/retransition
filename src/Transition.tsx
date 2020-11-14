@@ -98,6 +98,7 @@ const Transition: React.FC<TransitionProps> = ({
       if (finishLeave.current) {
         finishLeave.current();
       }
+      console.log("appear", appear, "isMounted", isMounted.current);
       const isAppear = appear && !isMounted.current;
       const [
         beforeHook,
@@ -126,10 +127,10 @@ const Transition: React.FC<TransitionProps> = ({
       beforeHook && beforeHook(el);
       addClass(el, fromClass);
       addClass(el, activeClass);
+      hook && hook(el);
       nextFrame(() => {
         removeClass(el, fromClass);
         addClass(el, toClass);
-        hook && hook(el);
         const onEnd = (finishEnter.current = once(() => {
           removeClass(el, toClass);
           removeClass(el, activeClass);
@@ -166,10 +167,10 @@ const Transition: React.FC<TransitionProps> = ({
       onBeforeLeave && onBeforeLeave(el);
       addClass(el, leaveFromClass);
       addClass(el, leaveActiveClass);
+      onLeave && onLeave(el);
       nextFrame(() => {
         removeClass(el, leaveFromClass);
         addClass(el, leaveToClass);
-        onLeave && onLeave(el);
         const onEnd = (finishLeave.current = once(() => {
           removeClass(el, leaveToClass);
           removeClass(el, leaveActiveClass);

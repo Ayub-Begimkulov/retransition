@@ -26,17 +26,11 @@ export function setupPuppeteer() {
   let page: puppeteer.Page;
 
   beforeEach(async () => {
-    browser = await puppeteer.launch({ devtools: true });
+    browser = await puppeteer.launch({});
     page = await browser.newPage();
 
     page.on("console", e => {
-      if (e.type() === "error") {
-        const err = e.args()[0] as any;
-        console.error(
-          `Error from Puppeteer-loaded page:\n`,
-          err._remoteObject.description
-        );
-      }
+      console.log(e.type(), e.text(), e.location());
     });
   });
 
