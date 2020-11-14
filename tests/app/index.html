@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transition</title>
+  </head>
+  <style>
+    .transition-enter-from,
+    .transition-leave-to,
+    .test-enter-from,
+    .test-appear-from,
+    .test-leave-to,
+    .enter-step-1,
+    .leave-step-3 {
+      opacity: 0;
+    }
+    .transition-enter-active,
+    .transition-leave-active,
+    .test-enter-active,
+    .test-appear-active,
+    .test-leave-active,
+    .enter-step-2,
+    .leave-step-2 {
+      transition: opacity 50ms ease;
+    }
+    .transition-enter-to,
+    .transition-leave-from,
+    .test-enter-to,
+    .test-appear-to,
+    .test-leave-from,
+    .enter-step-3,
+    .leave-step-1 {
+      opacity: 1;
+    }
+  </style>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

@@ -14,6 +14,7 @@ export interface TransitionProps {
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
+  nodeRef?: React.MutableRefObject<Element | null>;
   enterFromClass?: string;
   enterActiveClass?: string;
   enterToClass?: string;
@@ -23,25 +24,41 @@ export interface TransitionProps {
   leaveFromClass?: string;
   leaveActiveClass?: string;
   leaveToClass?: string;
-  onBeforeEnter?: (el: HTMLElement) => void;
-  onEnter?: (el: HTMLElement /* , done: () => void */) => void;
-  onAfterEnter?: (el: HTMLElement) => void;
-  // onEnterCancelled?: (el: HTMLElement) => void;
-  onBeforeLeave?: (el: HTMLElement) => void;
-  onLeave?: (el: HTMLElement /* , done: () => void */) => void;
-  onAfterLeave?: (el: HTMLElement) => void;
-  // onLeaveCancelled?: (el: HTMLElement) => void;
-  onBeforeAppear?: (el: HTMLElement) => void;
-  onAppear?: (el: HTMLElement /* , done: () => void */) => void;
-  onAfterAppear?: (el: HTMLElement) => void;
-  // onAppearCancelled?: (el: HTMLElement) => void;
+  onBeforeEnter?: (el: Element) => void;
+  onEnter?: (el: Element /* , done: () => void */) => void;
+  onAfterEnter?: (el: Element) => void;
+  // onEnterCancelled?: (el: Element) => void;
+  onBeforeLeave?: (el: Element) => void;
+  onLeave?: (el: Element /* , done: () => void */) => void;
+  onAfterLeave?: (el: Element) => void;
+  // onLeaveCancelled?: (el: Element) => void;
+  onBeforeAppear?: (el: Element) => void;
+  onAppear?: (el: Element /* , done: () => void */) => void;
+  onAfterAppear?: (el: Element) => void;
+  // onAppearCancelled?: (el: Element) => void;
 }
+
+/* function useTraceUpdate(props: any) {
+  const prev = useRef(props);
+  const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+    if (prev.current[k] !== v) {
+      ps[k] = [prev.current[k], v];
+    }
+    return ps;
+  }, {} as any);
+  if (Object.keys(changedProps).length > 0) {
+    console.log("Changed:", changedProps);
+  }
+  prev.current = props;
+  useEffect(() => {});
+} */
 
 const Transition: React.FC<TransitionProps> = ({
   visible,
   type,
   name = "transition",
   appear = false,
+  nodeRef,
   enterFromClass = `${name}-enter-from`,
   enterActiveClass = `${name}-enter-active`,
   enterToClass = `${name}-enter-to`,
@@ -51,36 +68,30 @@ const Transition: React.FC<TransitionProps> = ({
   leaveFromClass = `${name}-leave-from`,
   leaveActiveClass = `${name}-leave-active`,
   leaveToClass = `${name}-leave-to`,
-  onBeforeAppear,
-  onAppear,
-  onAfterAppear,
   onBeforeEnter,
   onEnter,
   onAfterEnter,
+  onBeforeAppear = onBeforeEnter,
+  onAppear = onEnter,
+  onAfterAppear = onAfterEnter,
   onBeforeLeave,
   onLeave,
   onAfterLeave,
   children,
 }) => {
   const [localVisible, setLocalVisible] = useState(visible);
-  const elRef = useRef<HTMLElement | null>(null);
+  const elRef = useRef<Element | null>(null);
   const isMounted = useIsMounted();
   const previousVisible = usePrevious(visible);
   // wrapping `localVisible` with ref to prevent unnecessary
   // effect calls
   const localVisibleRef = useLatest(localVisible);
 
-  // const localVisibleAndVisibleAreDifferent = useLatest(
-  //   localVisible !== previousVisible.current
-  // );
-
-  // console.log(localVisibleAndVisibleAreDifferent);
-
   const finishEnter = useRef<(() => void) | null>(null);
   const finishLeave = useRef<(() => void) | null>(null);
 
   const performEnter = useCallback(
-    (el: HTMLElement) => {
+    (el: Element) => {
       if (!appear && !isMounted.current) {
         return;
       }
@@ -115,10 +126,10 @@ const Transition: React.FC<TransitionProps> = ({
       beforeHook && beforeHook(el);
       addClass(el, fromClass);
       addClass(el, activeClass);
+      hook && hook(el);
       nextFrame(() => {
         removeClass(el, fromClass);
         addClass(el, toClass);
-        hook && hook(el);
         const onEnd = (finishEnter.current = once(() => {
           removeClass(el, toClass);
           removeClass(el, activeClass);
@@ -148,17 +159,17 @@ const Transition: React.FC<TransitionProps> = ({
   );
 
   const performLeave = useCallback(
-    (el: HTMLElement) => {
+    (el: Element) => {
       if (finishEnter.current) {
         finishEnter.current();
       }
       onBeforeLeave && onBeforeLeave(el);
       addClass(el, leaveFromClass);
       addClass(el, leaveActiveClass);
+      onLeave && onLeave(el);
       nextFrame(() => {
         removeClass(el, leaveFromClass);
         addClass(el, leaveToClass);
-        onLeave && onLeave(el);
         const onEnd = (finishLeave.current = once(() => {
           removeClass(el, leaveToClass);
           removeClass(el, leaveActiveClass);
@@ -182,25 +193,26 @@ const Transition: React.FC<TransitionProps> = ({
 
   useLayoutEffect(() => {
     if (visible) {
-      // if previous visible not equal to local visible prop
-      // then it means that leave animation was cancelled
-      // and we should perform enter ourself because
-      // ref callback won't be called since element isn't
-      // unmounted.
-      if (previousVisible.current !== localVisibleRef.current) {
+      // if component is mounted and `previousVisible.current` not
+      // equal to `localVisible` prop then it means
+      // that leave animation was cancelled and we
+      // should perform enter ourself because ref callback
+      // won't be called since element isn't unmounted.
+      if (
+        isMounted.current &&
+        previousVisible.current !== localVisibleRef.current
+      ) {
         elRef.current && performEnter(elRef.current);
       }
       setLocalVisible(true);
     } else if (elRef.current) {
-      if (finishEnter.current) {
-        finishEnter.current();
-      }
       performLeave(elRef.current);
     }
   }, [visible, performLeave, performEnter, previousVisible, localVisibleRef]);
 
   const ref = useCallback(
-    (el: HTMLElement | null) => {
+    (el: Element | null) => {
+      nodeRef && (nodeRef.current = el);
       elRef.current = el;
       if (el) {
         performEnter(el);
@@ -208,8 +220,6 @@ const Transition: React.FC<TransitionProps> = ({
     },
     [performEnter]
   );
-
-  console.log("render");
 
   if (!localVisible) return null;
 

@@ -1,14 +1,16 @@
 const path = require("path");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 
+const __DEV__ = process.env.NODE_ENV !== "production";
+
 module.exports = {
-  mode: "development",
-  entry: path.resolve(__dirname, "demo", "index.tsx"),
+  mode: process.env.NODE_ENV,
+  entry: path.resolve(__dirname, "index.tsx"),
   output: {
     filename: "bundle.js",
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "..", "dist"),
   },
-  devtool: "inline-source-map",
+  devtool: __DEV__ ? "inline-source-map" : "",
   devServer: {
     hot: true,
   },
@@ -37,7 +39,7 @@ module.exports = {
   },
   plugins: [
     new HTMLWebpackPlugin({
-      template: path.resolve(__dirname, "public", "index.html"),
+      template: path.resolve(__dirname, "index.html"),
     }),
   ],
 };
