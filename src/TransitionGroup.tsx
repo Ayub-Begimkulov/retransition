@@ -1,7 +1,7 @@
-import React, { useCallback, useLayoutEffect, useRef } from "react";
-import { TransitionProps } from "Transition";
-// import { usePrevious } from "hooks";
-import { addClass, removeClass } from "utils";
+import { usePrevious } from "hooks";
+import React, { useCallback, useLayoutEffect, useReducer, useRef } from "react";
+import Transition, { TransitionProps } from "Transition";
+import { addClass, hasOwn, removeClass } from "utils";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -43,79 +43,72 @@ interface TransitionGroupProps extends Omit<TransitionProps, "visible"> {
   className?: string;
 }
 
-const TransitionGroup: React.FC<TransitionGroupProps> = ({
+function useTraceUpdate(props: any) {
+  const prev = useRef(props);
+  const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+    if (prev.current[k] !== v) {
+      ps[k] = [prev.current[k], v];
+    }
+    return ps;
+  }, {} as any);
+  if (Object.keys(changedProps).length > 0) {
+    console.log("Changed:", changedProps);
+  }
+  prev.current = props;
+}
+
+const TransitionGroup = ({
   name = "transition",
   moveClass,
   children,
   className,
-}) => {
+}: React.PropsWithChildren<TransitionGroupProps>) => {
   const isFirst = useRef(true);
-  const childrenElements = useRef<Element[]>([]);
   const prevChildrenElements = useRef<Element[]>([]);
 
-  // const childrenArray = React.Children.toArray(children);
-  // const prevChildren = usePrevious(childrenArray);
-
-  /* const areChildrenSame = ((arr1, arr2) => {
-    if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
-      return false;
-    }
-    if (arr1.length !== arr2.length) {
-      return false;
-    }
-    return arr1.every(
-      (item, i) =>
-        item === arr2[i] || (item as any).key === (arr2[i] as any).key
-    );
-  })(prevChildren.current, childrenArray); */
-
-  // console.log(areChildrenSame);
-
+  useTraceUpdate({ name, moveClass, children, className });
   useLayoutEffect(() => {
     if (isFirst.current) {
       isFirst.current = false;
+      if (rootEl.current) {
+        prevChildrenElements.current = [...rootEl.current.children];
+      }
       return;
     }
 
     if (rootEl.current) {
-      prevChildrenElements.current = childrenElements.current;
-      childrenElements.current = [...rootEl.current.children];
-      if (
-        areArraysEqual(childrenElements.current, prevChildrenElements.current)
-      ) {
-        // console.log("return");
+      const childrenElements = [...rootEl.current.children];
+      if (areArraysEqual(childrenElements, prevChildrenElements.current)) {
         return;
       }
-      // console.log("not return");
-      // const prevChildrenSet = new Set(prevChildrenElements.current);
-      // const childrenSet = new Set(childrenElements.current);
-      // const removedElements = prevChildrenElements.current.filter(
-      //   child => !childrenSet.has(child)
-      // );
-      // const addedElements = childrenElements.current.filter(
-      //   child => !prevChildrenSet.has(child)
-      // );
-      // console.log({ addedElements, removedElements });
-      // childrenElements.current.forEach((el: any) => {
-      //   el._pendingCb && el._pendingCb();
-      //   el._pendingCb = null;
-      // });
-      childrenElements.current.forEach(el => {
+      const childrenToMove = prevChildrenElements.current || [];
+      childrenToMove.forEach(el => (el as any)._endCb?.());
+      childrenToMove.forEach(el => {
         newPositionMap.set(el, el.getBoundingClientRect());
       });
-      const movedChildren = childrenElements.current.filter(applyTranslation);
+      const movedChildren = childrenToMove.filter(applyTranslation);
 
       forceReflow();
+
       const moveCls = moveClass || `${name}-move`;
       movedChildren.forEach(child => {
         addClass(child, moveCls);
         positionMap.set(child, newPositionMap.get(child)!);
         (child as HTMLElement).style.transitionDuration = "";
         (child as HTMLElement).style.transform = "";
-        child.addEventListener("transitionend", () => {
-          removeClass(child, moveCls);
+        const endCb = ((child as any)._endCb = (e?: Event) => {
+          if (e && e.target !== child) {
+            return;
+          }
+          if (!e || /transform$/.test((e as TransitionEvent).propertyName)) {
+            removeClass(child, moveCls);
+            (child as any)._endCb = null;
+            child.removeEventListener("transitionend", endCb);
+          }
         });
+        child.addEventListener("transitionend", endCb);
       });
+      prevChildrenElements.current = childrenElements;
     }
   }, [children]);
 
@@ -127,17 +120,87 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
     }
   }, []);
 
+  const [, forceRerender] = useReducer(x => x + 1, 0);
+  if (isFirst.current) {
+    console.log(forceRerender, hasOwn);
+  }
+
+  const getChildrenWithProps = (
+    newChildren: Record<string, React.ReactElement>,
+    prevChildren: Record<string, React.ReactElement> | null
+  ) => {
+    if (!prevChildren) {
+      return Object.fromEntries(
+        Object.entries(newChildren).map(([key, child]) => {
+          return [key, <Transition visible={true}>{child}</Transition>];
+        })
+      );
+    } else {
+      const keys = [
+        ...new Set(Object.keys(newChildren).concat(Object.keys(prevChildren))),
+      ];
+      const result = {} as Record<string, JSX.Element>;
+      keys.forEach(key => {
+        const isOld = hasOwn(prevChildren, key);
+        const isNew = hasOwn(newChildren, key);
+        if (isOld && !isNew) {
+          result[key] = (
+            <Transition
+              visible={false}
+              onAfterLeave={() => {
+                console.log("leave");
+                forceRerender();
+              }}
+            >
+              {prevChildren[key]}
+            </Transition>
+          );
+        } else if (isNew && !isOld) {
+          result[key] = (
+            <Transition visible={true}>{newChildren[key]}</Transition>
+          );
+        } else {
+          result[key] = (
+            <Transition visible={true}>{newChildren[key]}</Transition>
+          );
+        }
+      });
+      return result;
+    }
+  };
+
+  const currentChildren = getChildMapping(children);
+  const prevChildrenMapping = usePrevious(currentChildren);
+
+  let childrenToRender = getChildrenWithProps(
+    currentChildren,
+    prevChildrenMapping.current
+  );
+
+  console.log("rerender");
+
   return (
     <div className={className} ref={rootEl}>
-      {React.Children.toArray(children)
-        .filter(React.isValidElement)
-        .map((child: React.ReactElement) => {
-          return React.cloneElement(child, {
-            ref,
-          });
-        })}
+      {Object.keys(childrenToRender).map(key => {
+        return React.cloneElement(childrenToRender[key], {
+          key,
+          appear: true,
+          nodeRef: ref,
+          name,
+        });
+      })}
     </div>
   );
 };
+
+function getChildMapping(children: React.ReactNode) {
+  const result = {} as Record<string, React.ReactElement>;
+  React.Children.forEach(children, child => {
+    if (React.isValidElement(child) && child.key) {
+      result[child.key] = child;
+    }
+  });
+  return result;
+}
 
 export default TransitionGroup;

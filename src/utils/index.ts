@@ -1,6 +1,19 @@
-import { AnyFunction } from "types";
+import { AnyFunction, AnyObject } from "types";
 export { whenTransitionEnds } from "./when-transition-ends";
 export type { CSSTransitionType } from "./when-transition-ends";
+
+export function isFunction(val: unknown): val is AnyFunction {
+  return typeof val === "function";
+}
+
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
+export function hasOwn<T extends AnyObject>(
+  value: T,
+  key: PropertyKey
+): key is keyof T {
+  return hasOwnProperty.call(value, key);
+}
 
 export function once<T extends AnyFunction>(fn: T) {
   let invoked = false;

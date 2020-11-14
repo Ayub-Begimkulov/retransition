@@ -24,21 +24,6 @@ function shuffle(array: any[]) {
 
 const App = () => {
   const [visible, setVisible] = useState(true);
-  const [arr, setArr] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-  const randomIndex = () => {
-    return Math.floor(Math.random() * arr.length);
-  };
-
-  const add = () => {
-    const idx = randomIndex();
-    setArr(arr => [...arr.slice(0, idx), nextNum++, ...arr.slice(idx)]);
-  };
-
-  const remove = () => {
-    const idx = randomIndex();
-    setArr(arr => [...arr.slice(0, idx), ...arr.slice(idx + 1)]);
-  };
 
   console.log("app render");
 
@@ -62,16 +47,42 @@ const App = () => {
         <Sudoku />
       </div>
       <div style={{ flex: 1 }}>
-        <div>
-          <button onClick={() => add()}>Add</button>
-          <button onClick={() => remove()}>Remove</button>
-          <TransitionGroup name="fade" appear>
-            {arr.map(value => (
-              <div key={value}>{value}</div>
-            ))}
-          </TransitionGroup>
-        </div>
+        <RandomNumbers />
       </div>
+    </div>
+  );
+};
+
+const RandomNumbers = () => {
+  const [arr, setArr] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+  const randomIndex = () => {
+    return Math.floor(Math.random() * arr.length);
+  };
+
+  const add = () => {
+    const idx = randomIndex();
+    setArr(arr => [...arr.slice(0, idx), nextNum++, ...arr.slice(idx)]);
+  };
+
+  const remove = (idx = randomIndex()) => {
+    setArr(arr => [...arr.slice(0, idx), ...arr.slice(idx + 1)]);
+  };
+
+  const removeLast = () => {
+    remove(arr.length - 1);
+  };
+
+  return (
+    <div>
+      <button onClick={() => add()}>Add</button>
+      <button onClick={() => remove()}>Remove</button>
+      <button onClick={() => removeLast()}>Remove Last</button>
+      <TransitionGroup name="test" appear>
+        {arr.map(value => (
+          <div key={"$" + value}>{value}</div>
+        ))}
+      </TransitionGroup>
     </div>
   );
 };
@@ -80,7 +91,7 @@ const makeArr = () => {
   return Array(81)
     .fill(null)
     .map((_, index) => ({
-      id: index,
+      id: "$" + index,
       number: (index % 9) + 1,
     }));
 };

@@ -7,6 +7,7 @@ import {
   whenTransitionEnds,
   CSSTransitionType,
   once,
+  isFunction,
 } from "utils";
 
 export interface TransitionProps {
@@ -14,7 +15,9 @@ export interface TransitionProps {
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
-  nodeRef?: React.MutableRefObject<Element | null>;
+  nodeRef?:
+    | React.MutableRefObject<Element | null>
+    | ((node: Element | null) => void);
   enterFromClass?: string;
   enterActiveClass?: string;
   enterToClass?: string;
@@ -133,6 +136,7 @@ const Transition: React.FC<TransitionProps> = ({
         const onEnd = (finishEnter.current = once(() => {
           removeClass(el, toClass);
           removeClass(el, activeClass);
+
           afterHook && afterHook(el);
           finishEnter.current = null;
         }));
@@ -212,23 +216,23 @@ const Transition: React.FC<TransitionProps> = ({
 
   const ref = useCallback(
     (el: Element | null) => {
-      nodeRef && (nodeRef.current = el);
+      if (nodeRef) {
+        isFunction(nodeRef) ? nodeRef(el) : (nodeRef.current = el);
+      }
       elRef.current = el;
       if (el) {
         performEnter(el);
       }
     },
-    [performEnter]
+    [performEnter, nodeRef]
   );
 
   if (!localVisible) return null;
 
   const child = React.Children.only(children) as React.ReactElement;
-
   const el = React.cloneElement(child, {
     ref,
   });
-
   return el;
 };
 
