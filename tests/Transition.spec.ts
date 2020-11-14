@@ -3,8 +3,6 @@ import { TransitionProps } from "Transition";
 import { AnyFunction } from "types";
 import { setupPuppeteer } from "./test-utils";
 
-jest.setTimeout(1_000_000);
-
 describe("Transition", () => {
   const { page, timeout, nextFrame, html, classList, click } = setupPuppeteer();
   const baseUrl = `file://${path.resolve(__dirname, "dist", "index.html")}`;
@@ -14,13 +12,13 @@ describe("Transition", () => {
 
   const transitionFinish = (time = duration) => timeout(time + buffer);
 
-  const updateProps = (props: Partial<TransitionProps> = {}) => {
-    const keys = Object.keys(props);
-    Object.entries(props)
-      .filter(([, value]) => typeof value === "function")
-      .forEach(([key, value]) => {
-        page().exposeFunction(key, value as AnyFunction);
-      });
+  const updateProps = async (props: Partial<TransitionProps> = {}) => {
+    const keys = Object.keys(props) as (keyof typeof props)[];
+    await Promise.all(
+      keys
+        .filter(key => typeof props[key] === "function")
+        .map(key => page().exposeFunction(key, props[key] as AnyFunction))
+    );
     const rest = Object.fromEntries(
       Object.entries(props).filter(([, value]) => typeof value !== "function")
     );
@@ -43,8 +41,8 @@ describe("Transition", () => {
     );
   };
 
-  const mount = (props?: Partial<TransitionProps>) => {
-    updateProps(props);
+  const mount = async (props?: Partial<TransitionProps>) => {
+    await updateProps(props);
     return page().evaluate(() => {
       (window as any).mount();
     });
@@ -265,7 +263,7 @@ describe("Transition", () => {
     expect(await html("#container")).toBe("");
   });
 
-  xit("transition events w/ appear", async () => {
+  it("transition events w/ appear", async () => {
     const onBeforeEnter = jest.fn();
     const onEnter = jest.fn();
     const onAfterEnter = jest.fn();
@@ -289,22 +287,32 @@ describe("Transition", () => {
       onBeforeAppear,
       onAppear,
       onAfterAppear,
+      appearFromClass: "test-appear-from",
+      appearActiveClass: "test-appear-active",
+      appearToClass: "test-appear-to",
     });
 
-    // await page().waitForSelector("#transition-element");
-
-    // expect(onBeforeAppear).toBeCalledTimes(1);
-    // expect(onAppear).toBeCalledTimes(1);
-    // expect(onAfterAppear).not.toBeCalled();
-
+    expect(await classList("#transition-element")).toEqual([
+      "test-appear-from",
+      "test-appear-active",
+    ]);
+    expect(onBeforeAppear).toBeCalledTimes(1);
+    expect(onAppear).toBeCalledTimes(1);
+    expect(onAfterAppear).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-appear-active",
+      "test-appear-to",
+    ]);
     await transitionFinish();
-    // expect(onAfterAppear).toBeCalledTimes(1);
+    expect(onAfterAppear).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
 
     // leave
     await click("#btn");
-    // expect(onBeforeLeave).toBeCalledTimes(1);
-    // expect(onLeave).toBeCalledTimes(1);
-    // expect(onAfterLeave).not.toBeCalled();
+    expect(onBeforeLeave).toBeCalledTimes(1);
+    expect(onLeave).toBeCalledTimes(1);
+    expect(onAfterLeave).not.toBeCalled();
     expect(await classList("#transition-element")).toEqual([
       "test-leave-from",
       "test-leave-active",
@@ -315,7 +323,7 @@ describe("Transition", () => {
       "test-leave-to",
     ]);
     await transitionFinish();
-    // expect(onAfterLeave).toBeCalledTimes(1);
+    expect(onAfterLeave).toBeCalledTimes(1);
     expect(await html("#container")).toBe("");
 
     // enter
@@ -324,22 +332,28 @@ describe("Transition", () => {
       "test-enter-from",
       "test-enter-active",
     ]);
-    // expect(onBeforeEnter).toBeCalledTimes(1);
-    // expect(onEnter).toBeCalledTimes(1);
-    // expect(onAfterEnter).not.toBeCalled();
+    expect(onBeforeEnter).toBeCalledTimes(1);
+    expect(onEnter).toBeCalledTimes(1);
+    expect(onAfterEnter).not.toBeCalled();
     await nextFrame();
     expect(await classList("#transition-element")).toEqual([
       "test-enter-active",
       "test-enter-to",
     ]);
     await transitionFinish();
-    // expect(onAfterEnter).toBeCalledTimes(1);
+    expect(onAfterEnter).toBeCalledTimes(1);
     expect(await classList("#transition-element")).toEqual([]);
   });
+
   it.todo("no transition detected");
+
   it.todo("animation");
+
   it.todo("explicit type");
+
   it.todo("transition w/ display: none/no unmount");
+
   it.todo("transition cancel (enter/leave)");
+
   it.todo("warn if wrong children");
 });

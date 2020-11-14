@@ -98,7 +98,6 @@ const Transition: React.FC<TransitionProps> = ({
       if (finishLeave.current) {
         finishLeave.current();
       }
-      console.log("appear", appear, "isMounted", isMounted.current);
       const isAppear = appear && !isMounted.current;
       const [
         beforeHook,

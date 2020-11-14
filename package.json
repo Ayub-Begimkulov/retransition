@@ -7,8 +7,7 @@
     "dev": "cd ./demo && webpack-dev-server",
     "test": "jest",
     "build-test-app": "cd ./tests/app && NODE_ENV=production webpack",
-    "build-dev-test-app": "cd ./tests/app && NODE_ENV=development webpack",
-    "build-and-test:e2e": "npm run build-test-app && npm run test",
+    "build-and-test": "npm run build-test-app && npm run test",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
   },
   "keywords": [],
