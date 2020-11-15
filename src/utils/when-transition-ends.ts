@@ -11,7 +11,7 @@ export function whenTransitionEnds(
   expectedType?: CSSTransitionType
 ) {
   const { type, timeout, propCount } = getTransitionInfo(el, expectedType);
-
+  console.log({ type, timeout, propCount });
   if (!type) {
     return cb();
   }

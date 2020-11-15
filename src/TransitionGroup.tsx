@@ -1,5 +1,11 @@
 import { usePrevious } from "hooks";
-import React, { useCallback, useLayoutEffect, useReducer, useRef } from "react";
+import React, {
+  ReactElement,
+  useCallback,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+} from "react";
 import Transition, { TransitionProps } from "Transition";
 import { addClass, hasOwn, removeClass } from "utils";
 
@@ -22,6 +28,7 @@ function applyTranslation(c: Element) {
 }
 
 function forceReflow() {
+  console.log("force reflow");
   return document.body.offsetHeight;
 }
 
@@ -136,11 +143,9 @@ const TransitionGroup = ({
         })
       );
     } else {
-      const keys = [
-        ...new Set(Object.keys(newChildren).concat(Object.keys(prevChildren))),
-      ];
+      const mapping = mergeChildMappings(prevChildren, newChildren);
       const result = {} as Record<string, JSX.Element>;
-      keys.forEach(key => {
+      Object.keys(mapping).forEach(key => {
         const isOld = hasOwn(prevChildren, key);
         const isNew = hasOwn(newChildren, key);
         if (isOld && !isNew) {
@@ -154,10 +159,6 @@ const TransitionGroup = ({
             >
               {prevChildren[key]}
             </Transition>
-          );
-        } else if (isNew && !isOld) {
-          result[key] = (
-            <Transition visible={true}>{newChildren[key]}</Transition>
           );
         } else {
           result[key] = (
@@ -177,11 +178,11 @@ const TransitionGroup = ({
     prevChildrenMapping.current
   );
 
-  console.log("rerender");
+  const keysToRender = Object.keys(childrenToRender);
 
   return (
     <div className={className} ref={rootEl}>
-      {Object.keys(childrenToRender).map(key => {
+      {keysToRender.map(key => {
         return React.cloneElement(childrenToRender[key], {
           key,
           appear: true,
@@ -201,6 +202,55 @@ function getChildMapping(children: React.ReactNode) {
     }
   });
   return result;
+}
+
+export function mergeChildMappings(
+  prev: Record<string, ReactElement>,
+  next: Record<string, ReactElement>
+) {
+  prev = prev || {};
+  next = next || {};
+
+  function getValueForKey(key: string) {
+    return key in next ? next[key] : prev[key];
+  }
+
+  // For each key of `next`, the list of keys to insert before that key in
+  // the combined list
+  let nextKeysPending = Object.create(null);
+
+  let pendingKeys = [];
+  for (let prevKey in prev) {
+    if (prevKey in next) {
+      if (pendingKeys.length) {
+        nextKeysPending[prevKey] = pendingKeys;
+        pendingKeys = [];
+      }
+    } else {
+      pendingKeys.push(prevKey);
+    }
+  }
+
+  let i;
+  let childMapping: Record<string, ReactElement> = {};
+  for (let nextKey in next) {
+    if (nextKeysPending[nextKey]) {
+      for (i = 0; i < nextKeysPending[nextKey].length; i++) {
+        let pendingNextKey = nextKeysPending[nextKey][i];
+        childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
+          pendingNextKey
+        );
+      }
+    }
+    childMapping[nextKey] = getValueForKey(nextKey);
+  }
+
+  // Finally, add the keys which didn't appear before any key in `next`
+  for (i = 0; i < pendingKeys.length; i++) {
+    childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
+  }
+
+  return childMapping;
 }
 
 export default TransitionGroup;

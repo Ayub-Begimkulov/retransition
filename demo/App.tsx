@@ -43,8 +43,11 @@ const App = () => {
             </div>
           </Transition>
         </div>
-
-        <Sudoku />
+        {false && (
+          <>
+            <Sudoku />
+          </>
+        )}
       </div>
       <div style={{ flex: 1 }}>
         <RandomNumbers />
@@ -69,6 +72,10 @@ const RandomNumbers = () => {
     setArr(arr => [...arr.slice(0, idx), ...arr.slice(idx + 1)]);
   };
 
+  const removeFirst = () => {
+    remove(0);
+  };
+
   const removeLast = () => {
     remove(arr.length - 1);
   };
@@ -76,7 +83,8 @@ const RandomNumbers = () => {
   return (
     <div>
       <button onClick={() => add()}>Add</button>
-      <button onClick={() => remove()}>Remove</button>
+      <button onClick={() => remove()}>Remove Random</button>
+      <button onClick={() => removeFirst()}>Remove First</button>
       <button onClick={() => removeLast()}>Remove Last</button>
       <TransitionGroup name="test" appear>
         {arr.map(value => (

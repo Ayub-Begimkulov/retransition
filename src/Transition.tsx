@@ -56,6 +56,12 @@ export interface TransitionProps {
   useEffect(() => {});
 } */
 
+// let showDebugger = false;
+
+// setTimeout(() => {
+//   showDebugger = true;
+// }, 1000);
+
 const Transition: React.FC<TransitionProps> = ({
   visible,
   type,
@@ -102,6 +108,7 @@ const Transition: React.FC<TransitionProps> = ({
         finishLeave.current();
       }
       const isAppear = appear && !isMounted.current;
+      console.log("isAppear", isAppear);
       const [
         beforeHook,
         hook,
@@ -136,7 +143,6 @@ const Transition: React.FC<TransitionProps> = ({
         const onEnd = (finishEnter.current = once(() => {
           removeClass(el, toClass);
           removeClass(el, activeClass);
-
           afterHook && afterHook(el);
           finishEnter.current = null;
         }));

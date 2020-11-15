@@ -2,15 +2,17 @@
   &-enter-from,
   &-leave-to {
     opacity: 0;
+    // transform: translateX(300px);
   }
 
   &-enter-active,
   &-leave-active {
-    transition: opacity 500ms ease;
+    transition: all 500ms ease;
   }
 
   &-enter-to,
   &-leave-from {
+    // transform: translateX(0px);
     opacity: 1;
   }
 
@@ -28,6 +30,10 @@
   &-enter-active,
   &-leave-active {
     transition: transform 500ms ease;
+  }
+
+  &-leave-active {
+    position: absolute;
   }
 
   &-enter-to,
