@@ -25,8 +25,6 @@ function shuffle(array: any[]) {
 const App = () => {
   const [visible, setVisible] = useState(true);
 
-  console.log("app render");
-
   return (
     <div style={{ display: "flex" }}>
       <div style={{ flex: 1 }}>
@@ -38,16 +36,10 @@ const App = () => {
             Toggle
           </button>
           <Transition visible={visible} name="fade" appear>
-            <div style={{ width: 200, height: 200, background: "black" }}>
-              Hello world
-            </div>
+            <div style={{ width: 200, height: 200, background: "black" }}></div>
           </Transition>
+          {true && <Sudoku />}
         </div>
-        {false && (
-          <>
-            <Sudoku />
-          </>
-        )}
       </div>
       <div style={{ flex: 1 }}>
         <RandomNumbers />
@@ -63,9 +55,16 @@ const RandomNumbers = () => {
     return Math.floor(Math.random() * arr.length);
   };
 
-  const add = () => {
-    const idx = randomIndex();
+  const add = (idx = randomIndex()) => {
     setArr(arr => [...arr.slice(0, idx), nextNum++, ...arr.slice(idx)]);
+  };
+
+  const addFirst = () => {
+    add(0);
+  };
+
+  const addLast = () => {
+    add(arr.length - 1);
   };
 
   const remove = (idx = randomIndex()) => {
@@ -80,15 +79,52 @@ const RandomNumbers = () => {
     remove(arr.length - 1);
   };
 
+  const shuffleArr = () => {
+    setArr(v => shuffle(v));
+  };
+
   return (
     <div>
-      <button onClick={() => add()}>Add</button>
-      <button onClick={() => remove()}>Remove Random</button>
-      <button onClick={() => removeFirst()}>Remove First</button>
-      <button onClick={() => removeLast()}>Remove Last</button>
+      <div style={{ display: "flex" }}>
+        <button style={{ margin: 8 }} onClick={() => add()}>
+          Add Random
+        </button>
+        <button style={{ margin: 8 }} onClick={() => addFirst()}>
+          Add First
+        </button>
+        <button style={{ margin: 8 }} onClick={() => addLast()}>
+          Add Last
+        </button>
+        <button style={{ margin: 8 }} onClick={() => shuffleArr()}>
+          Shuffle
+        </button>
+        <button
+          style={{ margin: 8 }}
+          onClick={() => setArr(x => [x[1], x[0], ...x.slice(2)])}
+        >
+          Swap
+        </button>
+      </div>
+      <div style={{ display: "flex" }}>
+        <button style={{ margin: 8 }} onClick={() => remove()}>
+          Remove Random
+        </button>
+        <button style={{ margin: 8 }} onClick={() => removeFirst()}>
+          Remove First
+        </button>
+        <button style={{ margin: 8 }} onClick={() => removeLast()}>
+          Remove Last
+        </button>
+      </div>
       <TransitionGroup name="test" appear>
         {arr.map(value => (
-          <div key={"$" + value}>{value}</div>
+          <div
+            style={{ padding: "5px 8px" }}
+            key={"$" + value}
+            data-key={"$" + value}
+          >
+            {value}
+          </div>
         ))}
       </TransitionGroup>
     </div>

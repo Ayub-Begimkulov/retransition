@@ -12,6 +12,7 @@ module.exports = {
       version: "detect",
     },
   },
+  ignorePatterns: ["dist", "webpack.config.js"],
   extends: [
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
@@ -21,5 +22,6 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "react/prop-types": "off",
+    "prefer-spread": "off",
   },
 };

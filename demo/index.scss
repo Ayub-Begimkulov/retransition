@@ -2,7 +2,7 @@
   &-enter-from,
   &-leave-to {
     opacity: 0;
-    // transform: translateX(300px);
+    transform: translateX(300px);
   }
 
   &-enter-active,
@@ -12,7 +12,7 @@
 
   &-enter-to,
   &-leave-from {
-    // transform: translateX(0px);
+    transform: translateX(0px);
     opacity: 1;
   }
 
