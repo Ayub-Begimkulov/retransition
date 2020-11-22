@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "../src";
+import { Transition, TransitionGroup } from "../dist";
 
 import "./index.scss";
 

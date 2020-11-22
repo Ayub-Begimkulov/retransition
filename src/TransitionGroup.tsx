@@ -1,13 +1,14 @@
 import React, { useLayoutEffect, useReducer, useRef } from "react";
-import { useHasChanged, useIsMounted, usePrevious } from "hooks";
-import Transition, { TransitionProps } from "Transition";
-import { addClass, hasOwn, removeClass } from "utils";
-import { getChildMapping, mergeChildMappings } from "utils/children";
+import { useHasChanged, useIsMounted, usePrevious } from "./hooks";
+import Transition, { TransitionProps } from "./Transition";
+import { addClass, hasOwn, removeClass } from "./utils";
+import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
-interface TransitionGroupProps extends Omit<TransitionProps, "visible"> {
+interface TransitionGroupProps
+  extends Omit<TransitionProps, "visible" | "children"> {
   tag?: string;
   moveClass?: string;
   className?: string;

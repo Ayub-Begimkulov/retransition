@@ -1,6 +1,6 @@
 import React, { useReducer, useState } from "react";
 import ReactDOM from "react-dom";
-import Transition, { TransitionProps } from "Transition";
+import { Transition, TransitionProps } from "../../dist";
 
 const defaultProps = Object.freeze({
   visible: false,
@@ -11,7 +11,10 @@ const w = window as any;
 export const App = () => {
   const [mounted, setMounted] = useState(false);
   const [props, setProps] = useReducer(
-    (state: TransitionProps, newState: Partial<TransitionProps>) => ({
+    (
+      state: Omit<TransitionProps, "children">,
+      newState: Partial<TransitionProps>
+    ) => ({
       ...state,
       ...newState,
     }),

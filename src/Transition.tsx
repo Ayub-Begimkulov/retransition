@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { useIsMounted, useLatest, usePrevious } from "hooks";
+import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import {
   addClass,
   nextFrame,
@@ -8,7 +8,7 @@ import {
   CSSTransitionType,
   once,
   isFunction,
-} from "utils";
+} from "./utils";
 
 export interface TransitionProps {
   visible: boolean;
@@ -39,9 +39,10 @@ export interface TransitionProps {
   onAppear?: (el: Element /* , done: () => void */) => void;
   onAfterAppear?: (el: Element) => void;
   // onAppearCancelled?: (el: Element) => void;
+  children: React.ReactElement;
 }
 
-const Transition: React.FC<TransitionProps> = props => {
+const Transition = (props: TransitionProps) => {
   const latestProps = useLatest(props);
   const { visible, children } = props;
 
@@ -204,7 +205,7 @@ const Transition: React.FC<TransitionProps> = props => {
 
   if (!localVisible) return null;
 
-  const child = React.Children.only(children) as React.ReactElement;
+  const child = React.Children.only(children);
   const el = React.cloneElement(child, {
     ref,
   });

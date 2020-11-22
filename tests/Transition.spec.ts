@@ -1,6 +1,6 @@
 import path from "path";
-import { TransitionProps } from "Transition";
-import { AnyFunction } from "types";
+import { TransitionProps } from "../dist/Transition";
+import { AnyFunction } from "../dist/types";
 import { setupPuppeteer } from "./test-utils";
 
 describe("Transition", () => {
