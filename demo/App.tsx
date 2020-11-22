@@ -24,23 +24,6 @@ function shuffle(array: any[]) {
 
 const App = () => {
   const [visible, setVisible] = useState(true);
-  const [arr, setArr] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-
-  const randomIndex = () => {
-    return Math.floor(Math.random() * arr.length);
-  };
-
-  const add = () => {
-    const idx = randomIndex();
-    setArr(arr => [...arr.slice(0, idx), nextNum++, ...arr.slice(idx)]);
-  };
-
-  const remove = () => {
-    const idx = randomIndex();
-    setArr(arr => [...arr.slice(0, idx), ...arr.slice(idx + 1)]);
-  };
-
-  console.log("app render");
 
   return (
     <div style={{ display: "flex" }}>
@@ -53,25 +36,97 @@ const App = () => {
             Toggle
           </button>
           <Transition visible={visible} name="fade" appear>
-            <div style={{ width: 200, height: 200, background: "black" }}>
-              Hello world
-            </div>
+            <div style={{ width: 200, height: 200, background: "black" }}></div>
           </Transition>
+          {true && <Sudoku />}
         </div>
-
-        <Sudoku />
       </div>
       <div style={{ flex: 1 }}>
-        <div>
-          <button onClick={() => add()}>Add</button>
-          <button onClick={() => remove()}>Remove</button>
-          <TransitionGroup name="fade" appear>
-            {arr.map(value => (
-              <div key={value}>{value}</div>
-            ))}
-          </TransitionGroup>
-        </div>
+        <RandomNumbers />
       </div>
+    </div>
+  );
+};
+
+const RandomNumbers = () => {
+  const [arr, setArr] = useState([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+  const randomIndex = () => {
+    return Math.floor(Math.random() * arr.length);
+  };
+
+  const add = (idx = randomIndex()) => {
+    setArr(arr => [...arr.slice(0, idx), nextNum++, ...arr.slice(idx)]);
+  };
+
+  const addFirst = () => {
+    add(0);
+  };
+
+  const addLast = () => {
+    add(arr.length - 1);
+  };
+
+  const remove = (idx = randomIndex()) => {
+    setArr(arr => [...arr.slice(0, idx), ...arr.slice(idx + 1)]);
+  };
+
+  const removeFirst = () => {
+    remove(0);
+  };
+
+  const removeLast = () => {
+    remove(arr.length - 1);
+  };
+
+  const shuffleArr = () => {
+    setArr(v => shuffle(v));
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex" }}>
+        <button style={{ margin: 8 }} onClick={() => add()}>
+          Add Random
+        </button>
+        <button style={{ margin: 8 }} onClick={() => addFirst()}>
+          Add First
+        </button>
+        <button style={{ margin: 8 }} onClick={() => addLast()}>
+          Add Last
+        </button>
+        <button style={{ margin: 8 }} onClick={() => shuffleArr()}>
+          Shuffle
+        </button>
+        <button
+          style={{ margin: 8 }}
+          onClick={() => setArr(x => [x[1], x[0], ...x.slice(2)])}
+        >
+          Swap
+        </button>
+      </div>
+      <div style={{ display: "flex" }}>
+        <button style={{ margin: 8 }} onClick={() => remove()}>
+          Remove Random
+        </button>
+        <button style={{ margin: 8 }} onClick={() => removeFirst()}>
+          Remove First
+        </button>
+        <button style={{ margin: 8 }} onClick={() => removeLast()}>
+          Remove Last
+        </button>
+      </div>
+      <TransitionGroup name="test" appear>
+        {arr.map(value => (
+          <div
+            style={{ padding: "5px 8px" }}
+            key={"$" + value}
+            data-key={"$" + value}
+          >
+            {value}
+          </div>
+        ))}
+      </TransitionGroup>
     </div>
   );
 };
@@ -80,7 +135,7 @@ const makeArr = () => {
   return Array(81)
     .fill(null)
     .map((_, index) => ({
-      id: index,
+      id: "$" + index,
       number: (index % 9) + 1,
     }));
 };

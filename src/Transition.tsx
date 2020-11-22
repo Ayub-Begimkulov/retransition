@@ -7,6 +7,7 @@ import {
   whenTransitionEnds,
   CSSTransitionType,
   once,
+  isFunction,
 } from "utils";
 
 export interface TransitionProps {
@@ -14,7 +15,9 @@ export interface TransitionProps {
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
-  nodeRef?: React.MutableRefObject<Element | null>;
+  nodeRef?:
+    | React.MutableRefObject<Element | null>
+    | ((node: Element | null) => void);
   enterFromClass?: string;
   enterActiveClass?: string;
   enterToClass?: string;
@@ -38,60 +41,40 @@ export interface TransitionProps {
   // onAppearCancelled?: (el: Element) => void;
 }
 
-/* function useTraceUpdate(props: any) {
-  const prev = useRef(props);
-  const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-    if (prev.current[k] !== v) {
-      ps[k] = [prev.current[k], v];
-    }
-    return ps;
-  }, {} as any);
-  if (Object.keys(changedProps).length > 0) {
-    console.log("Changed:", changedProps);
-  }
-  prev.current = props;
-  useEffect(() => {});
-} */
+const Transition: React.FC<TransitionProps> = props => {
+  const latestProps = useLatest(props);
+  const { visible, children } = props;
 
-const Transition: React.FC<TransitionProps> = ({
-  visible,
-  type,
-  name = "transition",
-  appear = false,
-  nodeRef,
-  enterFromClass = `${name}-enter-from`,
-  enterActiveClass = `${name}-enter-active`,
-  enterToClass = `${name}-enter-to`,
-  appearFromClass = enterFromClass,
-  appearActiveClass = enterActiveClass,
-  appearToClass = enterToClass,
-  leaveFromClass = `${name}-leave-from`,
-  leaveActiveClass = `${name}-leave-active`,
-  leaveToClass = `${name}-leave-to`,
-  onBeforeEnter,
-  onEnter,
-  onAfterEnter,
-  onBeforeAppear = onBeforeEnter,
-  onAppear = onEnter,
-  onAfterAppear = onAfterEnter,
-  onBeforeLeave,
-  onLeave,
-  onAfterLeave,
-  children,
-}) => {
   const [localVisible, setLocalVisible] = useState(visible);
-  const elRef = useRef<Element | null>(null);
-  const isMounted = useIsMounted();
   const previousVisible = usePrevious(visible);
   // wrapping `localVisible` with ref to prevent unnecessary
   // effect calls
   const localVisibleRef = useLatest(localVisible);
 
+  const elRef = useRef<Element | null>(null);
+  const isMounted = useIsMounted();
   const finishEnter = useRef<(() => void) | null>(null);
   const finishLeave = useRef<(() => void) | null>(null);
 
   const performEnter = useCallback(
     (el: Element) => {
+      const {
+        type,
+        appear = false,
+        name = "transition",
+        enterFromClass = `${name}-enter-from`,
+        enterActiveClass = `${name}-enter-active`,
+        enterToClass = `${name}-enter-to`,
+        appearFromClass = enterFromClass,
+        appearActiveClass = enterActiveClass,
+        appearToClass = enterToClass,
+        onBeforeEnter,
+        onEnter,
+        onAfterEnter,
+        onBeforeAppear = onBeforeEnter,
+        onAppear = onEnter,
+        onAfterAppear = onAfterEnter,
+      } = latestProps.current;
       if (!appear && !isMounted.current) {
         return;
       }
@@ -139,23 +122,7 @@ const Transition: React.FC<TransitionProps> = ({
         whenTransitionEnds(el, onEnd, type);
       });
     },
-    [
-      type,
-      appear,
-      appearFromClass,
-      appearActiveClass,
-      appearToClass,
-      enterFromClass,
-      enterActiveClass,
-      enterToClass,
-      isMounted,
-      onBeforeAppear,
-      onAppear,
-      onAfterAppear,
-      onBeforeEnter,
-      onEnter,
-      onAfterEnter,
-    ]
+    [latestProps, isMounted]
   );
 
   const performLeave = useCallback(
@@ -163,6 +130,16 @@ const Transition: React.FC<TransitionProps> = ({
       if (finishEnter.current) {
         finishEnter.current();
       }
+      const {
+        type,
+        name = "transition",
+        leaveFromClass = `${name}-leave-from`,
+        leaveActiveClass = `${name}-leave-active`,
+        leaveToClass = `${name}-leave-to`,
+        onBeforeLeave,
+        onLeave,
+        onAfterLeave,
+      } = latestProps.current;
       onBeforeLeave && onBeforeLeave(el);
       addClass(el, leaveFromClass);
       addClass(el, leaveActiveClass);
@@ -173,22 +150,16 @@ const Transition: React.FC<TransitionProps> = ({
         const onEnd = (finishLeave.current = once(() => {
           removeClass(el, leaveToClass);
           removeClass(el, leaveActiveClass);
-          setLocalVisible(false);
+          if (isMounted.current) {
+            setLocalVisible(false);
+          }
           onAfterLeave && onAfterLeave(el);
           finishLeave.current = null;
         }));
         whenTransitionEnds(el, onEnd, type);
       });
     },
-    [
-      type,
-      leaveActiveClass,
-      leaveFromClass,
-      leaveToClass,
-      onBeforeLeave,
-      onLeave,
-      onAfterLeave,
-    ]
+    [isMounted, latestProps]
   );
 
   useLayoutEffect(() => {
@@ -208,27 +179,35 @@ const Transition: React.FC<TransitionProps> = ({
     } else if (elRef.current) {
       performLeave(elRef.current);
     }
-  }, [visible, performLeave, performEnter, previousVisible, localVisibleRef]);
+  }, [
+    visible,
+    performLeave,
+    performEnter,
+    previousVisible,
+    localVisibleRef,
+    isMounted,
+  ]);
 
   const ref = useCallback(
     (el: Element | null) => {
-      nodeRef && (nodeRef.current = el);
+      const { nodeRef } = latestProps.current;
+      if (nodeRef) {
+        isFunction(nodeRef) ? nodeRef(el) : (nodeRef.current = el);
+      }
       elRef.current = el;
       if (el) {
         performEnter(el);
       }
     },
-    [performEnter]
+    [performEnter, latestProps]
   );
 
   if (!localVisible) return null;
 
   const child = React.Children.only(children) as React.ReactElement;
-
   const el = React.cloneElement(child, {
     ref,
   });
-
   return el;
 };
 

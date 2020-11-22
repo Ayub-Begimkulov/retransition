@@ -292,6 +292,7 @@ describe("Transition", () => {
       appearToClass: "test-appear-to",
     });
 
+    // appear
     expect(await classList("#transition-element")).toEqual([
       "test-appear-from",
       "test-appear-active",
@@ -342,6 +343,80 @@ describe("Transition", () => {
     ]);
     await transitionFinish();
     expect(onAfterEnter).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+  });
+
+  it("transition events w/ appear, calls enter events if no appear one passed", async () => {
+    const onBeforeEnter = jest.fn();
+    const onEnter = jest.fn();
+    const onAfterEnter = jest.fn();
+    const onBeforeLeave = jest.fn();
+    const onLeave = jest.fn();
+    const onAfterLeave = jest.fn();
+
+    await mount({
+      visible: true,
+      name: "test",
+      appear: true,
+      onBeforeEnter,
+      onEnter,
+      onAfterEnter,
+      onBeforeLeave,
+      onLeave,
+      onAfterLeave,
+    });
+
+    // appear
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-from",
+      "test-enter-active",
+    ]);
+    expect(onBeforeEnter).toBeCalledTimes(1);
+    expect(onEnter).toBeCalledTimes(1);
+    expect(onAfterEnter).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterEnter).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+
+    // leave
+    await click("#btn");
+    expect(onBeforeLeave).toBeCalledTimes(1);
+    expect(onLeave).toBeCalledTimes(1);
+    expect(onAfterLeave).not.toBeCalled();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-from",
+      "test-leave-active",
+    ]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterLeave).toBeCalledTimes(1);
+    expect(await html("#container")).toBe("");
+
+    // enter
+    await click("#btn");
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-from",
+      "test-enter-active",
+    ]);
+    expect(onBeforeEnter).toBeCalledTimes(2);
+    expect(onEnter).toBeCalledTimes(2);
+    expect(onAfterEnter).not.toBeCalledTimes(2);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterEnter).toBeCalledTimes(2);
     expect(await classList("#transition-element")).toEqual([]);
   });
 
