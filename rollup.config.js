@@ -1,9 +1,9 @@
 import typescript from "rollup-plugin-typescript2";
-// import { terser } from "rollup-plugin-terser";
+import { terser } from "rollup-plugin-terser";
 
 export default {
   input: "src/index.ts",
-  plugins: [typescript() /* , terser() */],
+  plugins: [typescript(), terser()],
   external: ["react"],
   output: [
     {
