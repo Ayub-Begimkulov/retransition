@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useReducer, useRef } from "react";
+import React, { useLayoutEffect, useReducer, useRef } from "react";
 import { useHasChanged, useIsMounted, usePrevious } from "hooks";
 import Transition, { TransitionProps } from "Transition";
 import { addClass, hasOwn, removeClass } from "utils";
@@ -22,68 +22,60 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
   const isMounted = useIsMounted();
   const prevChildrenElements = useRef<Element[]>([]);
 
+  const rootRef = useRef<HTMLDivElement>(null);
+
   const childrenChanged = useHasChanged(children);
 
   if (childrenChanged && prevChildrenElements.current.length > 0) {
-    prevChildrenElements.current.forEach(el => {
-      positionMap.set(el, el.getBoundingClientRect());
-    });
+    prevChildrenElements.current.forEach(recordPosition);
   }
 
   useLayoutEffect(() => {
-    if (rootEl.current) {
-      const childrenElements = [...rootEl.current.children];
-      if (!isMounted.current) {
-        prevChildrenElements.current = childrenElements;
-        return;
-      }
-      const childrenToMove = prevChildrenElements.current || [];
-      childrenToMove.forEach(el => (el as any)._endCb?.());
-      childrenToMove.forEach(el => {
-        newPositionMap.set(el, el.getBoundingClientRect());
-      });
-      const movedChildren = childrenToMove.filter(applyTranslation);
-      forceReflow();
+    const root = rootRef.current;
+    if (!root) return;
 
-      const moveCls = moveClass || `${name}-move`;
-      movedChildren.forEach(child => {
-        addClass(child, moveCls);
-        (child as HTMLElement).style.transitionDuration = "";
-        (child as HTMLElement).style.transform = "";
-        const endCb = ((child as any)._endCb = (e?: Event) => {
-          if (e && e.target !== child) {
-            return;
-          }
-          if (!e || /transform$/.test((e as TransitionEvent).propertyName)) {
-            child.removeEventListener("transitionend", endCb);
-            (child as any)._endCb = null;
-            removeClass(child, moveCls);
-          }
-        });
-        child.addEventListener("transitionend", endCb);
-      });
+    const childrenElements = [...root.children];
+    if (!isMounted.current) {
       prevChildrenElements.current = childrenElements;
+      return;
     }
+    const childrenToMove = prevChildrenElements.current;
+    childrenToMove.forEach(el => (el as any)._endCb?.());
+    childrenToMove.forEach(recordNewPosition);
+    const movedChildren = childrenToMove.filter(applyTranslation);
+    forceReflow();
+
+    const moveCls = moveClass || `${name}-move`;
+    movedChildren.forEach(child => {
+      addClass(child, moveCls);
+      (child as HTMLElement).style.transitionDuration = "";
+      (child as HTMLElement).style.transform = "";
+      const endCb = ((child as any)._endCb = (e?: Event) => {
+        if (e && e.target !== child) {
+          return;
+        }
+        if (!e || /transform$/.test((e as TransitionEvent).propertyName)) {
+          child.removeEventListener("transitionend", endCb);
+          (child as any)._endCb = null;
+          removeClass(child, moveCls);
+        }
+      });
+      child.addEventListener("transitionend", endCb);
+    });
+    prevChildrenElements.current = childrenElements;
   }, [children, moveClass, name, isMounted]);
-
-  const rootEl = useRef<HTMLDivElement>(null);
-
-  const onAfterEnter = useCallback((el: Element) => {
-    positionMap.set(el, el.getBoundingClientRect());
-  }, []);
 
   const childrenToRender = useTransitionChildren(children);
 
   const keysToRender = Object.keys(childrenToRender);
 
   return (
-    <div className={className} ref={rootEl}>
+    <div className={className} ref={rootRef}>
       {keysToRender.map(key => {
         return React.cloneElement(childrenToRender[key], {
           key,
           appear: true,
           name,
-          onAfterEnter,
         });
       })}
     </div>
@@ -129,6 +121,14 @@ function useTransitionChildren(children: React.ReactNode) {
     });
     return result;
   }
+}
+
+function recordPosition(el: Element) {
+  positionMap.set(el, el.getBoundingClientRect());
+}
+
+function recordNewPosition(el: Element) {
+  newPositionMap.set(el, el.getBoundingClientRect());
 }
 
 function applyTranslation(c: Element) {
