@@ -1,12 +1,12 @@
 {
-  "name": "transition",
-  "version": "1.0.0",
+  "name": "test-react-css-transition",
+  "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "build": "rollup -c",
     "test": "jest",
-    "build-and-test": "cd ./tests/app && NODE_ENV=production webpack && npm run test",
+    "build-and-test": "npm run build --prefix tests/app && npm run test",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
   },
   "keywords": [
@@ -26,6 +26,9 @@
   "bugs": {
     "url": "https://github.com/Ayub-Begimkulov/react-transition/issues"
   },
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@types/jest": "^26.0.15",
     "@types/puppeteer": "^5.4.0",
@@ -46,8 +49,7 @@
     "rollup-plugin-typescript2": "^0.29.0",
     "ts-jest": "^26.4.3",
     "ts-loader": "^8.0.4",
-    "typescript": "^4.1.2",
-    "webpack-dev-server": "^3.11.0"
+    "typescript": "^4.1.2"
   },
   "peerDependencies": {
     "react": ">=16.8.0",

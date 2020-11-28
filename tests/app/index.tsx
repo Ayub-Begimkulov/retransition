@@ -1,6 +1,6 @@
 import React, { useReducer, useState } from "react";
 import ReactDOM from "react-dom";
-import { Transition, TransitionProps } from "../../dist";
+import { Transition, TransitionProps } from "test-react-css-transition";
 
 const defaultProps = Object.freeze({
   visible: false,
