@@ -17,12 +17,12 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    // "baseUrl": "./src",
+    "baseUrl": "./src",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true 
   },
-  "include": ["./src"],
+  "include": ["."],
   "exclude": ["node_modules"]
 }

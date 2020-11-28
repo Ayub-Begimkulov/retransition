@@ -1,4 +1,4 @@
-import { AnyObject } from "types";
+import { AnyObject } from "../types";
 
 const ANIMATION = "animation";
 const TRANSITION = "transition";

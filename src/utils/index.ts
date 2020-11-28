@@ -1,4 +1,4 @@
-import { AnyFunction, AnyObject } from "types";
+import { AnyFunction, AnyObject } from "../types";
 export { whenTransitionEnds } from "./when-transition-ends";
 export type { CSSTransitionType } from "./when-transition-ends";
 
