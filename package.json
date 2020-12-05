@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "description": "",
   "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "sideEffects": false,
   "scripts": {
     "build": "rollup -c",
     "test": "jest",
