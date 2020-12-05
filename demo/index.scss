@@ -29,7 +29,7 @@
 
   &-enter-active,
   &-leave-active {
-    transition: transform 500ms ease;
+    transition: transform 1500ms ease;
   }
 
   &-leave-active {
@@ -53,7 +53,7 @@
 .container {
   display: flex;
   flex-wrap: wrap;
-  width: 238px;
+  width: 240px;
   margin-top: 10px;
 }
 

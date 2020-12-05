@@ -40,9 +40,7 @@ export function mergeChildMappings(
     if (nextKeysPending[nextKey]) {
       for (i = 0; i < nextKeysPending[nextKey].length; i++) {
         const pendingNextKey = nextKeysPending[nextKey][i];
-        childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
-          pendingNextKey
-        );
+        childMapping[pendingNextKey] = getValueForKey(pendingNextKey);
       }
     }
     childMapping[nextKey] = getValueForKey(nextKey);
