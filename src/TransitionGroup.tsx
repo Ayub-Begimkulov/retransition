@@ -9,13 +9,14 @@ const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
 interface TransitionGroupProps
   extends Omit<TransitionProps, "visible" | "children"> {
-  tag?: string;
+  tag?: keyof JSX.IntrinsicElements;
   moveClass?: string;
   className?: string;
 }
 
 const TransitionGroup: React.FC<TransitionGroupProps> = ({
   name = "transition",
+  // tag: Tag = "div",
   moveClass,
   children,
   className,
@@ -91,26 +92,19 @@ function useTransitionChildren(children: React.ReactNode) {
   const newChildren = currentChildren;
   const prevChildren = prevChildrenMapping.current;
 
+  const result = {} as typeof newChildren;
   if (!prevChildren) {
-    const result = {} as typeof newChildren;
     for (const key in newChildren) {
       result[key] = <Transition visible={true}>{newChildren[key]}</Transition>;
     }
-    return result;
   } else {
     const mapping = mergeChildMappings(prevChildren, newChildren);
-    const result = {} as Record<string, JSX.Element>;
-    Object.keys(mapping).forEach(key => {
+    for (const key in mapping) {
       const isOld = hasOwn(prevChildren, key);
       const isNew = hasOwn(newChildren, key);
       if (isOld && !isNew) {
         result[key] = (
-          <Transition
-            visible={false}
-            onAfterLeave={() => {
-              forceRerender();
-            }}
-          >
+          <Transition visible={false} onAfterLeave={forceRerender}>
             {prevChildren[key]}
           </Transition>
         );
@@ -119,9 +113,9 @@ function useTransitionChildren(children: React.ReactNode) {
           <Transition visible={true}>{newChildren[key]}</Transition>
         );
       }
-    });
-    return result;
+    }
   }
+  return result;
 }
 
 function recordPosition(el: Element) {
@@ -138,14 +132,11 @@ function applyTranslation(c: Element) {
   if (!oldPos || !newPos) return;
   const dx = oldPos.left - newPos.left;
   const dy = oldPos.top - newPos.top;
-
-  if (dx || dy) {
-    const s = (c as HTMLElement).style;
-    s.transform = s.webkitTransform = `translate(${dx}px,${dy}px)`;
-    s.transitionDuration = "0";
-    return c;
-  }
-  return;
+  if (!dx && !dy) return;
+  const s = (c as HTMLElement).style;
+  s.transform = s.webkitTransform = `translate(${dx}px,${dy}px)`;
+  s.transitionDuration = "0";
+  return c;
 }
 
 function forceReflow() {

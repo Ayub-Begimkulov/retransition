@@ -1,4 +1,5 @@
 {
+  "private": true,
   "name": "test-react-css-transition",
   "version": "0.1.0",
   "description": "",
@@ -28,6 +29,11 @@
   },
   "files": [
     "dist"
+  ],
+  "workspaces": [
+    "demo",
+    "src",
+    "tests/app"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.15",
