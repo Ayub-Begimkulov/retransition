@@ -146,13 +146,15 @@ const Sudoku = () => {
   return (
     <>
       <button onClick={() => setNumbers(v => shuffle(v))}>shuffle</button>{" "}
-      <TransitionGroup className="container" name="cell">
-        {numbers.map(({ id, number }) => (
-          <div key={id} className="cell">
-            {number}
-          </div>
-        ))}
-      </TransitionGroup>
+      <div className="container">
+        <TransitionGroup name="cell">
+          {numbers.map(({ id, number }) => (
+            <div key={id} className="cell">
+              {number}
+            </div>
+          ))}
+        </TransitionGroup>
+      </div>
     </>
   );
 };

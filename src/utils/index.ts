@@ -47,3 +47,16 @@ export function removeClass(el: Element, ...classes: string[]) {
 export function hasClass(el: Element, className: string) {
   return el.classList.contains(className);
 }
+
+export function mapObject<T extends AnyObject, V>(
+  obj: T,
+  mapper: (value: T[keyof T], key: keyof T, originalObj: T) => V
+) {
+  const result: V[] = [];
+  for (const key in obj) {
+    if (hasOwn(obj, key)) {
+      result.push(mapper(obj[key], key, obj));
+    }
+  }
+  return result;
+}

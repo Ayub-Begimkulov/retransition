@@ -1,4 +1,11 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { TransitionGroupContext } from "./context";
 import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import {
   addClass,
@@ -42,7 +49,9 @@ export interface TransitionProps {
   children: React.ReactElement;
 }
 
+// TODO unmount or hide
 const Transition = (props: TransitionProps) => {
+  const context = useContext(TransitionGroupContext);
   const latestProps = useLatest(props);
   const { visible, children } = props;
 
@@ -152,6 +161,7 @@ const Transition = (props: TransitionProps) => {
           removeClass(el, leaveToClass);
           removeClass(el, leaveActiveClass);
           if (isMounted.current) {
+            context?.unregister(el);
             setLocalVisible(false);
           }
           onAfterLeave && onAfterLeave(el);
@@ -160,7 +170,7 @@ const Transition = (props: TransitionProps) => {
         whenTransitionEnds(el, onEnd, type);
       });
     },
-    [isMounted, latestProps]
+    [isMounted, latestProps, context]
   );
 
   useLayoutEffect(() => {
@@ -197,14 +207,16 @@ const Transition = (props: TransitionProps) => {
       }
       elRef.current = el;
       if (el) {
+        context?.register(el);
         performEnter(el);
       }
     },
-    [performEnter, latestProps]
+    [performEnter, latestProps, context]
   );
 
   if (!localVisible) return null;
 
+  // TODO add error handling and warning if multiple children
   const child = React.Children.only(children);
   const el = React.cloneElement(child, {
     ref,
