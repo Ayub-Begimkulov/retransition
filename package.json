@@ -9,6 +9,7 @@
   "scripts": {
     "build": "rollup -c",
     "test": "jest",
+    "dev": "cd demo && npm run dev",
     "build-and-test": "npm run build --prefix tests/app && npm run test",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
   },

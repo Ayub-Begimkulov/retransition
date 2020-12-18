@@ -1,30 +1,27 @@
-import React, { useLayoutEffect, useReducer, useRef } from "react";
+import React, { useLayoutEffect, useMemo, useReducer, useRef } from "react";
+import { TransitionGroupContext } from "./context";
 import { useHasChanged, useIsMounted, usePrevious } from "./hooks";
 import Transition, { TransitionProps } from "./Transition";
-import { addClass, hasOwn, removeClass } from "./utils";
+import { addClass, hasOwn, mapObject, removeClass } from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
+// TODO correct props
 interface TransitionGroupProps
   extends Omit<TransitionProps, "visible" | "children"> {
-  tag?: keyof JSX.IntrinsicElements;
   moveClass?: string;
-  className?: string;
 }
 
 const TransitionGroup: React.FC<TransitionGroupProps> = ({
   name = "transition",
-  // tag: Tag = "div",
   moveClass,
   children,
-  className,
 }) => {
   const isMounted = useIsMounted();
+  const newChildrenElements = useRef<Element[]>([]);
   const prevChildrenElements = useRef<Element[]>([]);
-
-  const rootRef = useRef<HTMLDivElement>(null);
 
   const childrenChanged = useHasChanged(children);
 
@@ -32,16 +29,36 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
     prevChildrenElements.current.forEach(recordPosition);
   }
 
-  useLayoutEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
+  const ctxValue = useMemo(
+    () => ({
+      register(el: Element) {
+        newChildrenElements.current.push(el);
+      },
+      unregister(el: Element) {
+        prevChildrenElements.current = prevChildrenElements.current.filter(
+          e => e !== el
+        );
+      },
+    }),
+    []
+  );
 
-    const childrenElements = [...root.children];
+  useLayoutEffect(() => {
+    const updateChildren = () => {
+      if (newChildrenElements.current.length > 0) {
+        prevChildrenElements.current = [
+          ...prevChildrenElements.current,
+          ...newChildrenElements.current,
+        ];
+        newChildrenElements.current = [];
+      }
+    };
     if (!isMounted.current) {
-      prevChildrenElements.current = childrenElements;
+      updateChildren();
       return;
     }
     const childrenToMove = prevChildrenElements.current;
+
     childrenToMove.forEach(el => (el as any)._endCb?.());
     childrenToMove.forEach(recordNewPosition);
     const movedChildren = childrenToMove.filter(applyTranslation);
@@ -64,27 +81,27 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
       });
       child.addEventListener("transitionend", endCb);
     });
-    prevChildrenElements.current = childrenElements;
+    updateChildren();
   }, [children, moveClass, name, isMounted]);
 
   const childrenToRender = useTransitionChildren(children);
 
-  const keysToRender = Object.keys(childrenToRender);
-
   return (
-    <div className={className} ref={rootRef}>
-      {keysToRender.map(key => {
-        return React.cloneElement(childrenToRender[key], {
+    <TransitionGroupContext.Provider value={ctxValue}>
+      {mapObject(childrenToRender, (value, key) => {
+        return React.cloneElement(value, {
           key,
+          // TODO pass appear correctly
           appear: true,
           name,
         });
       })}
-    </div>
+    </TransitionGroupContext.Provider>
   );
 };
 
 function useTransitionChildren(children: React.ReactNode) {
+  // TODO think about different way to update children
   const [, forceRerender] = useReducer(x => x + 1, 0);
   const currentChildren = getChildMapping(children);
   const prevChildrenMapping = usePrevious(currentChildren);
@@ -134,7 +151,7 @@ function applyTranslation(c: Element) {
   const dy = oldPos.top - newPos.top;
   if (!dx && !dy) return;
   const s = (c as HTMLElement).style;
-  s.transform = s.webkitTransform = `translate(${dx}px,${dy}px)`;
+  s.transform = `translate(${dx}px,${dy}px)`;
   s.transitionDuration = "0";
   return c;
 }
