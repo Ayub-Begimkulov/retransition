@@ -35,10 +35,10 @@ const App = () => {
           >
             Toggle
           </button>
-          <Transition visible={visible} name="fade" appear>
+          <Transition visible={visible} name="fade" appear unmount={false}>
             <div style={{ width: 200, height: 200, background: "black" }}></div>
           </Transition>
-          {true && <Sudoku />}
+          {false && <Sudoku />}
         </div>
       </div>
       <div style={{ flex: 1 }}>

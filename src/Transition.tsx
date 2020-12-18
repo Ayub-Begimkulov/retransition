@@ -22,6 +22,7 @@ export interface TransitionProps {
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
+  unmount?: boolean;
   nodeRef?:
     | React.MutableRefObject<Element | null>
     | ((node: Element | null) => void);
@@ -53,7 +54,7 @@ export interface TransitionProps {
 const Transition = (props: TransitionProps) => {
   const context = useContext(TransitionGroupContext);
   const latestProps = useLatest(props);
-  const { visible, children } = props;
+  const { visible, children, unmount = true } = props;
 
   const [localVisible, setLocalVisible] = useState(visible);
   const previousVisible = usePrevious(visible);
@@ -65,12 +66,14 @@ const Transition = (props: TransitionProps) => {
   const isMounted = useIsMounted();
   const finishEnter = useRef<(() => void) | null>(null);
   const finishLeave = useRef<(() => void) | null>(null);
+  const initialDisplay = useRef<string | null>(null);
 
   const performEnter = useCallback(
     (el: Element) => {
       const {
         type,
         appear = false,
+        unmount = true,
         name = "transition",
         enterFromClass = `${name}-enter-from`,
         enterActiveClass = `${name}-enter-active`,
@@ -117,15 +120,17 @@ const Transition = (props: TransitionProps) => {
             enterToClass,
           ];
       beforeHook && beforeHook(el);
-      addClass(el, fromClass);
-      addClass(el, activeClass);
+      if (!unmount) {
+        // TODO think about the case with initial `display: none`
+        (el as HTMLElement).style.display = initialDisplay.current || "";
+      }
+      addClass(el, fromClass, activeClass);
       hook && hook(el);
       nextFrame(() => {
         removeClass(el, fromClass);
         addClass(el, toClass);
         const onEnd = (finishEnter.current = once(() => {
-          removeClass(el, toClass);
-          removeClass(el, activeClass);
+          removeClass(el, toClass, activeClass);
           afterHook && afterHook(el);
           finishEnter.current = null;
         }));
@@ -143,6 +148,7 @@ const Transition = (props: TransitionProps) => {
       const {
         type,
         name = "transition",
+        unmount = true,
         leaveFromClass = `${name}-leave-from`,
         leaveActiveClass = `${name}-leave-active`,
         leaveToClass = `${name}-leave-to`,
@@ -163,6 +169,11 @@ const Transition = (props: TransitionProps) => {
           if (isMounted.current) {
             context?.unregister(el);
             setLocalVisible(false);
+            if (!unmount) {
+              const s = (el as HTMLElement).style;
+              initialDisplay.current = s.display;
+              s.display = "none";
+            }
           }
           onAfterLeave && onAfterLeave(el);
           finishLeave.current = null;
@@ -184,6 +195,9 @@ const Transition = (props: TransitionProps) => {
         isMounted.current &&
         previousVisible.current !== localVisibleRef.current
       ) {
+        elRef.current && performEnter(elRef.current);
+      }
+      if (!latestProps.current.unmount) {
         elRef.current && performEnter(elRef.current);
       }
       setLocalVisible(true);
@@ -214,7 +228,7 @@ const Transition = (props: TransitionProps) => {
     [performEnter, latestProps, context]
   );
 
-  if (!localVisible) return null;
+  if (unmount && !localVisible) return null;
 
   // TODO add error handling and warning if multiple children
   const child = React.Children.only(children);
