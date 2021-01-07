@@ -5,7 +5,7 @@ import { setupPuppeteer } from "./test-utils";
 
 describe("TransitionGroup2", () => {
   const { page } = setupPuppeteer();
-  const baseUrl = `file://${path.resolve(__dirname, "test.html")}`;
+  const baseUrl = `file://${path.resolve(__dirname, "transition.html")}`;
 
   // let coverageMap: CoverageMap;
   // beforeAll(() => {
@@ -40,6 +40,7 @@ describe("TransitionGroup2", () => {
 
   it("warn unkeyed children", async () => {
     const consoleErrorSpy = jest.spyOn(console, "error");
+
     await page().evaluate(() => {
       return new Promise(res => {
         const { React, ReactDOM, ReactTransition } = window as any;
