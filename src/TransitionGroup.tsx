@@ -1,24 +1,27 @@
 import React, { useLayoutEffect, useMemo, useReducer, useRef } from "react";
 import { TransitionGroupContext } from "./context";
 import { useHasChanged, useIsMounted, usePrevious } from "./hooks";
-import Transition, { TransitionProps } from "./Transition";
-import { addClass, hasOwn, mapObject, removeClass } from "./utils";
+import { TransitionProps } from "./Transition";
+import { addClass, combine, hasOwn, mapObject, removeClass } from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
 // TODO correct props
-interface TransitionGroupProps
-  extends Omit<TransitionProps, "visible" | "children"> {
+interface TransitionGroupProps {
+  name?: string;
+  appear?: boolean;
   moveClass?: string;
+  children: React.ReactElement<TransitionProps>[];
 }
 
-const TransitionGroup: React.FC<TransitionGroupProps> = ({
-  name = "transition",
+const TransitionGroup = ({
+  name,
+  appear,
   moveClass,
   children,
-}) => {
+}: TransitionGroupProps) => {
   const isMounted = useIsMounted();
   const newChildrenElements = useRef<Element[]>([]);
   const prevChildrenElements = useRef<Element[]>([]);
@@ -84,15 +87,12 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
     updateChildren();
   }, [children, moveClass, name, isMounted]);
 
-  const childrenToRender = useTransitionChildren(children);
-
+  const childrenToRender = useTransitionChildren(children, appear);
   return (
     <TransitionGroupContext.Provider value={ctxValue}>
       {mapObject(childrenToRender, (value, key) => {
         return React.cloneElement(value, {
           key,
-          // TODO pass appear correctly
-          appear: true,
           name,
         });
       })}
@@ -100,7 +100,12 @@ const TransitionGroup: React.FC<TransitionGroupProps> = ({
   );
 };
 
-function useTransitionChildren(children: React.ReactNode) {
+const getProp = (el: React.ReactElement, key: string) => {
+  if (!hasOwn(el.props, key)) return;
+  return el.props[key];
+};
+
+function useTransitionChildren(children: React.ReactNode, appear?: boolean) {
   // TODO think about different way to update children
   const [, forceRerender] = useReducer(x => x + 1, 0);
   const currentChildren = getChildMapping(children);
@@ -112,23 +117,32 @@ function useTransitionChildren(children: React.ReactNode) {
   const result = {} as typeof newChildren;
   if (!prevChildren) {
     for (const key in newChildren) {
-      result[key] = <Transition visible={true}>{newChildren[key]}</Transition>;
+      result[key] = React.cloneElement(newChildren[key], {
+        visible: true,
+        appear,
+      });
     }
   } else {
     const mapping = mergeChildMappings(prevChildren, newChildren);
     for (const key in mapping) {
       const isOld = hasOwn(prevChildren, key);
       const isNew = hasOwn(newChildren, key);
+      // item is deleted
       if (isOld && !isNew) {
-        result[key] = (
-          <Transition visible={false} onAfterLeave={forceRerender}>
-            {prevChildren[key]}
-          </Transition>
-        );
+        const onAfterLeaveProp = getProp(prevChildren[key], "onAfterLeave");
+        result[key] = React.cloneElement(prevChildren[key], {
+          visible: false,
+          onAfterLeave: onAfterLeaveProp
+            ? combine(onAfterLeaveProp, forceRerender)
+            : forceRerender,
+        });
+      } else if (isNew) {
+        result[key] = React.cloneElement(newChildren[key], {
+          visible: true,
+          appear: true,
+        });
       } else {
-        result[key] = (
-          <Transition visible={true}>{newChildren[key]}</Transition>
-        );
+        result[key] = React.cloneElement(newChildren[key], { visible: true });
       }
     }
   }

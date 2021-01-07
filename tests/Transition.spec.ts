@@ -48,15 +48,31 @@ describe("Transition", () => {
     });
   };
 
+  const render = (props?: any) => {
+    return page().evaluate(function (this: any, props) {
+      return new Promise(res =>
+        this.render(props, () => {
+          res(
+            document
+              .querySelector("#transition-element")
+              ?.className.split(/\s+/g)
+          );
+        })
+      );
+    }, props);
+  };
+
   beforeEach(async () => {
     await page().goto(baseUrl);
     await page().waitForSelector("#app");
   });
 
   it("basic transition", async () => {
-    await mount();
+    await render();
     // enter
-    await click("#btn");
+    await page().evaluate(function (this: any) {
+      this.rerender({ visible: true });
+    });
     expect(await classList("#transition-element")).toEqual([
       "transition-enter-from",
       "transition-enter-active",
@@ -70,7 +86,9 @@ describe("Transition", () => {
     expect(await classList("#transition-element")).toEqual([]);
 
     // leave
-    await click("#btn");
+    await page().evaluate(function (this: any) {
+      this.rerender({ visible: false });
+    });
     expect(await classList("#transition-element")).toEqual([
       "transition-leave-from",
       "transition-leave-active",

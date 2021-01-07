@@ -39,6 +39,8 @@
     "tests/app"
   ],
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.11.8",
+    "@testing-library/react": "^11.2.2",
     "@types/jest": "^26.0.15",
     "@types/puppeteer": "^5.4.0",
     "@types/react": "^16.9.50",

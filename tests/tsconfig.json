@@ -2,14 +2,10 @@
   "compilerOptions": {
     "target": "ES2015",
     "module": "es2015",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],                            
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": false,
-    "jsx": "react" ,
-    "declaration": true,
+    "jsx": "react",
+    "declaration": false,
     "sourceMap": true,
     "strict": true,
     "noUnusedLocals": true,
@@ -21,7 +17,7 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true 
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["."],
   "exclude": ["node_modules"]

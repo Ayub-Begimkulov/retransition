@@ -4,7 +4,8 @@
   "description": "",
   "main": "webpack.config.js",
   "scripts": {
-    "build": "NODE_ENV=production webpack"
+    "build": "NODE_ENV=production webpack",
+    "test": "NODE_ENV=production webpack && cd ../.. && yarn test ./tests"
   },
   "keywords": [],
   "author": "",

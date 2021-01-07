@@ -79,3 +79,26 @@
 .cell-move {
   transition: transform 5s;
 }
+
+.anim-leave-to,
+.anim-enter-from {
+  opacity: 0;
+}
+.anim-enter-active {
+  animation: test 500ms ease 1;
+}
+.anim-leave-active {
+  animation: test 500ms ease 1 reverse;
+}
+.anim-leave-from,
+.anim-enter-to {
+  opacity: 1;
+}
+@keyframes test {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

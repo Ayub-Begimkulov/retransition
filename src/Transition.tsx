@@ -18,7 +18,7 @@ import {
 } from "./utils";
 
 export interface TransitionProps {
-  visible: boolean;
+  visible?: boolean;
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
@@ -197,11 +197,18 @@ const Transition = (props: TransitionProps) => {
       ) {
         elRef.current && performEnter(elRef.current);
       }
-      if (!latestProps.current.unmount) {
+      // TODO add comment for this shit
+      // TODO fix === false
+      // latestProps doesn't have a default values for props
+      if (latestProps.current.unmount === false) {
         elRef.current && performEnter(elRef.current);
       }
       setLocalVisible(true);
-    } else if (elRef.current) {
+    } else if (
+      // do not run performLeave on initial render
+      isMounted.current &&
+      elRef.current
+    ) {
       performLeave(elRef.current);
     }
   }, [
@@ -230,6 +237,9 @@ const Transition = (props: TransitionProps) => {
 
   if (unmount && !localVisible) return null;
 
+  if (process.env.NODE_ENV === "development") {
+    console.log("dev");
+  }
   // TODO add error handling and warning if multiple children
   const child = React.Children.only(children);
   const el = React.cloneElement(child, {

@@ -60,3 +60,9 @@ export function mapObject<T extends AnyObject, V>(
   }
   return result;
 }
+
+export function combine(...fns: AnyFunction[]) {
+  return (...args: any[]) => {
+    fns.forEach(f => f(...args));
+  };
+}
