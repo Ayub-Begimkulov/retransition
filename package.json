@@ -11,6 +11,7 @@
     "test": "jest",
     "dev": "cd demo && npm run dev",
     "build-and-test": "npm run build --prefix tests/app && npm run test",
+    "test-group": "npm run build --prefix tests/app2 && npm run test ./tests/TransitionGroup.spec.ts",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
   },
   "keywords": [

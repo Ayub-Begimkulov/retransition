@@ -14,5 +14,10 @@ export default {
       file: "dist/index.es.js",
       format: "es",
     },
+    {
+      file: "dist/index.umd.js",
+      format: "umd",
+      name: "ReactTransition",
+    },
   ],
 };

@@ -5,23 +5,16 @@ import { Transition, TransitionGroup } from "../../src";
 const w = window as any;
 
 export const App = (props: any) => {
+  const { elements, transitionProps, ...rest } = props;
   return (
     <div id="container">
-      <TransitionGroup>
-        {props.elements.map((e: number) => (
-          <div key={e}>{e}</div>
+      <TransitionGroup {...rest}>
+        {elements.map((e: number) => (
+          <Transition key={"$" + e} {...transitionProps}>
+            <div>{e}</div>
+          </Transition>
         ))}
       </TransitionGroup>
-    </div>
-  );
-};
-
-export const App2 = (props: any) => {
-  return (
-    <div id="container">
-      <Transition {...props}>
-        <div id="transition-element"></div>
-      </Transition>
     </div>
   );
 };
@@ -32,5 +25,5 @@ let latestProps: any;
 
 w.render = (props: any, cb?: () => void) => {
   latestProps = { ...latestProps, ...props };
-  ReactDOM.render(App2(latestProps), baseElement, cb);
+  ReactDOM.render(App(latestProps), baseElement, cb);
 };

@@ -9,7 +9,7 @@ const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
 // TODO correct props
-interface TransitionGroupProps {
+export interface TransitionGroupProps {
   name?: string;
   appear?: boolean;
   moveClass?: string;
@@ -61,13 +61,14 @@ const TransitionGroup = ({
       return;
     }
     const childrenToMove = prevChildrenElements.current;
-
+    // 3 separate loops for performance
+    // https://stackoverflow.com/questions/19250971/why-a-tiny-reordering-of-dom-read-write-operations-causes-a-huge-performance-dif
     childrenToMove.forEach(el => (el as any)._endCb?.());
     childrenToMove.forEach(recordNewPosition);
     const movedChildren = childrenToMove.filter(applyTranslation);
     forceReflow();
 
-    const moveCls = moveClass || `${name}-move`;
+    const moveCls = moveClass || `${name || "transition"}-move`;
     movedChildren.forEach(child => {
       addClass(child, moveCls);
       (child as HTMLElement).style.transitionDuration = "";
@@ -82,6 +83,8 @@ const TransitionGroup = ({
           removeClass(child, moveCls);
         }
       });
+      // TODO think about performance issues if using
+      // whenTransitionEnds here
       child.addEventListener("transitionend", endCb);
     });
     updateChildren();
@@ -93,6 +96,7 @@ const TransitionGroup = ({
       {mapObject(childrenToRender, (value, key) => {
         return React.cloneElement(value, {
           key,
+          // TODO should it override name?
           name,
         });
       })}

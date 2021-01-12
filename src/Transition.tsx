@@ -204,11 +204,16 @@ const Transition = (props: TransitionProps) => {
         elRef.current && performEnter(elRef.current);
       }
       setLocalVisible(true);
-    } else if (
-      // do not run performLeave on initial render
-      isMounted.current &&
-      elRef.current
-    ) {
+    } else if (elRef.current) {
+      if (!isMounted.current) {
+        if (latestProps.current.unmount === false) {
+          initialDisplay.current = (elRef.current as HTMLElement).style.display;
+          (elRef.current as HTMLElement).style.display = "none";
+        }
+        console.log("return");
+        // do not run `performLeave` on initial render
+        return;
+      }
       performLeave(elRef.current);
     }
   }, [
@@ -222,14 +227,14 @@ const Transition = (props: TransitionProps) => {
 
   const ref = useCallback(
     (el: Element | null) => {
-      const { nodeRef } = latestProps.current;
+      const { nodeRef, unmount = true } = latestProps.current;
       if (nodeRef) {
         isFunction(nodeRef) ? nodeRef(el) : (nodeRef.current = el);
       }
       elRef.current = el;
       if (el) {
         context?.register(el);
-        performEnter(el);
+        unmount && performEnter(el);
       }
     },
     [performEnter, latestProps, context]

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Parcel Sandbox</title>
+    <meta charset="UTF-8" />
+  </head>
+
+  <body>
+    <div id="app"></div>
+    <script
+      src="https://unpkg.com/react@17/umd/react.production.min.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+    <!-- <script>
+      setTimeout(() => {
+        const script = document.createElement("script");
+        script.textContent = Babel.transform(
+          `
+          const root = document.getElementById("app")
+          ;ReactDOM.render(<div>Hello</div>, root);`,
+          { presets: ["react"] }
+        ).code;
+        document.body.appendChild(script);
+      }, 1000);
+    </script> -->
+    <!-- <script src="src/index.js" type="text/babel">
+      const App = () => {
+        return <div>{}</div>
+      }
+      const root = document.getElementById("app");
+      ReactDOM.render(<div>Hello</div>, root);
+    </script> -->
+  </body>
+</html>

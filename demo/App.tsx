@@ -23,29 +23,32 @@ function shuffle(array: any[]) {
 }
 
 const App = () => {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   return (
     <div style={{ display: "flex" }}>
       <div style={{ flex: 1 }}>
         <div style={{ height: 300 }}>
           <button
-            onClick={() => setVisible(v => !v)}
+            onClick={() => {
+              console.log("click");
+              setVisible(v => !v);
+            }}
             style={{ marginBottom: 20 }}
           >
             Toggle
           </button>
-          <Transition visible={visible} name="fade" appear>
+          <Transition visible={visible} name="fade" appear unmount={false}>
             <div style={{ width: 200, height: 200, background: "black" }}></div>
           </Transition>
           {<Sudoku />}
         </div>
       </div>
-      {
+      {false && (
         <div style={{ flex: 1 }}>
           <RandomNumbers />
         </div>
-      }
+      )}
     </div>
   );
 };
