@@ -1,11 +1,20 @@
 import React, { ReactElement } from "react";
 
-export function getChildMapping(children: React.ReactNode) {
+export function getChildMapping(
+  children: React.ReactElement | React.ReactElement[]
+) {
   const result = {} as Record<string, ReactElement>;
   React.Children.forEach(children, child => {
-    if (React.isValidElement(child) && child.key) {
-      result[child.key] = child;
+    if (!child.key) {
+      if (process.env.NODE_ENV === "development") {
+        throw new Error(
+          // TODO change accordion to the library name
+          "[ReactTransition]: <TransitionGroup /> children must have key"
+        );
+      }
+      return;
     }
+    result[child.key] = child;
   });
   return result;
 }

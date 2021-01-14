@@ -57,6 +57,7 @@
     "puppeteer": "^5.4.1",
     "react": "^17.0.1",
     "rollup": "^2.33.3",
+    "rollup-plugin-size-snapshot": "^0.12.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.29.0",
     "ts-jest": "^26.4.3",
@@ -71,6 +72,5 @@
     "hooks": {
       "pre-commit": "npm run lint && npm run test"
     }
-  },
-  "dependencies": {}
+  }
 }

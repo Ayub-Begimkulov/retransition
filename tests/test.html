@@ -3,37 +3,84 @@
   <head>
     <title>Parcel Sandbox</title>
     <meta charset="UTF-8" />
+    <style>
+      .transition-enter-from,
+      .transition-leave-to,
+      .transition-appear-from,
+      .test-enter-from,
+      .test-appear-from,
+      .test-leave-to,
+      .enter-step-1,
+      .leave-step-3 {
+        opacity: 0;
+      }
+      .transition-enter-active,
+      .transition-leave-active,
+      .transition-appear-active,
+      .test-enter-active,
+      .test-appear-active,
+      .test-leave-active,
+      .enter-step-2,
+      .leave-step-2 {
+        transition: opacity 50ms ease;
+      }
+      .transition-enter-to,
+      .transition-leave-from,
+      .transition-appear-to,
+      .test-enter-to,
+      .test-appear-to,
+      .test-leave-from,
+      .enter-step-3,
+      .leave-step-1 {
+        opacity: 1;
+      }
+      .anim-leave-to,
+      .anim-enter-from {
+        opacity: 0;
+      }
+      .anim-enter-active {
+        animation: enter 50ms ease 1;
+      }
+      .anim-leave-active {
+        animation: leave 50ms ease 1 reverse;
+      }
+      .anim-leave-from,
+      .anim-enter-to {
+        opacity: 1;
+      }
+      @keyframes enter {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      @keyframes leave {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+      .transition-move {
+        transition: transform 50ms ease;
+      }
+    </style>
   </head>
 
   <body>
     <div id="app"></div>
     <script
-      src="https://unpkg.com/react@17/umd/react.production.min.js"
       crossorigin
+      src="https://unpkg.com/react@17/umd/react.production.min.js"
     ></script>
     <script
-      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
       crossorigin
+      src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
     ></script>
     <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
-    <!-- <script>
-      setTimeout(() => {
-        const script = document.createElement("script");
-        script.textContent = Babel.transform(
-          `
-          const root = document.getElementById("app")
-          ;ReactDOM.render(<div>Hello</div>, root);`,
-          { presets: ["react"] }
-        ).code;
-        document.body.appendChild(script);
-      }, 1000);
-    </script> -->
-    <!-- <script src="src/index.js" type="text/babel">
-      const App = () => {
-        return <div>{}</div>
-      }
-      const root = document.getElementById("app");
-      ReactDOM.render(<div>Hello</div>, root);
-    </script> -->
+    <script src="../dist/index.umd.js"></script>
   </body>
 </html>

@@ -47,14 +47,9 @@ describe("TransitionGroup", () => {
         });
         return new Promise(res => {
           this.render(resultProps, () => {
-            // Promise.resolve().then(() => {
-            // const el = document.querySelector("#container")?.innerHTML;
-            // console.log(el);
-            // res(el);
-            // });
-          });
-          Promise.resolve().then(() => {
-            res(document.querySelector("#container")?.innerHTML);
+            Promise.resolve().then(() => {
+              res(document.querySelector("#container")?.innerHTML);
+            });
           });
         });
       },
@@ -192,59 +187,264 @@ describe("TransitionGroup", () => {
     );
   });
 
-  it("appear", async () => {
+  it("appear passed to TransitionGroup", async () => {
     const appearHTML = await render({
-      elements: [1, 3],
+      elements: [1, 2],
       appear: true,
       transitionProps: {
         appearFromClass: "transition-appear-from",
-        appearActiveClass: "transition-appear-to",
-        appearToClass: "transition-appear-active",
+        appearActiveClass: "transition-appear-active",
+        appearToClass: "transition-appear-to",
       },
     });
 
     expect(appearHTML).toBe(
       `<div class="transition-appear-from transition-appear-active">1</div>` +
-        `<div class="transition-appear-from transition-appear-active">3</div>`
+        `<div class="transition-appear-from transition-appear-active">2</div>`
     );
 
     await nextFrame();
 
     expect(await html("#container")).toBe(
       `<div class="transition-appear-active transition-appear-to">1</div>` +
-        `<div class="transition-appear-active transition-appear-to">3</div>`
+        `<div class="transition-appear-active transition-appear-to">2</div>`
     );
 
     await transitionFinish();
 
     expect(await html("#container")).toBe(
-      `<div class="">1</div>` + `<div class="">3</div>`
+      `<div class="">1</div>` + `<div class="">2</div>`
     );
 
-    // await render({
-    //   elements: [1, 2, 3],
-    // });
+    // enter
+    const enterHTML = await render({
+      elements: [1, 2, 3],
+    });
 
-    // expect(await html("#container")).toBe(
-    //   `<div>1</div>` +
-    //     `<div class="transition-enter-from transition-enter-active">2</div>` +
-    //     `<div class="transition-move" style="">3</div>`
-    // );
+    expect(enterHTML).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-enter-from transition-enter-active">3</div>`
+    );
 
-    // await nextFrame();
+    await nextFrame();
 
-    // expect(await html("#container")).toBe(
-    //   `<div>1</div>` +
-    //     `<div class="transition-enter-active transition-enter-to">2</div>` +
-    //     `<div class="transition-move" style="">3</div>`
-    // );
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-enter-active transition-enter-to">3</div>`
+    );
 
-    // await transitionFinish();
+    await transitionFinish();
 
-    // expect(await html("#container")).toBe(
-    //   `<div>1</div><div class="">2</div><div class="" style="">3</div>`
-    // );
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="">3</div>`
+    );
+
+    // leave
+    const leaveHTML = await render({
+      elements: [1, 2],
+    });
+
+    expect(leaveHTML).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-leave-from transition-leave-active">3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-leave-active transition-leave-to">3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` + `<div class="">2</div>`
+    );
   });
 
-  it.todo("warn unkeyed children");
+  it("appear passed to each Transition", async () => {
+    const appearHTML = await render({
+      elements: [1, 2],
+      transitionProps: {
+        appear: true,
+        appearFromClass: "transition-appear-from",
+        appearActiveClass: "transition-appear-active",
+        appearToClass: "transition-appear-to",
+      },
+    });
+
+    expect(appearHTML).toBe(
+      `<div class="transition-appear-from transition-appear-active">1</div>` +
+        `<div class="transition-appear-from transition-appear-active">2</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="transition-appear-active transition-appear-to">1</div>` +
+        `<div class="transition-appear-active transition-appear-to">2</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` + `<div class="">2</div>`
+    );
+
+    // enter
+    const enterHTML = await render({
+      elements: [1, 2, 3],
+    });
+
+    expect(enterHTML).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-enter-from transition-enter-active">3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-enter-active transition-enter-to">3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="">3</div>`
+    );
+
+    // leave
+    const leaveHTML = await render({
+      elements: [1, 2],
+    });
+
+    expect(leaveHTML).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-leave-from transition-leave-active">3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-leave-active transition-leave-to">3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` + `<div class="">2</div>`
+    );
+  });
+
+  it("prioritize child appear", async () => {
+    const appearHTML = await render({
+      elements: [1, 2],
+      appear: false,
+      transitionProps: {
+        appear: true,
+        appearFromClass: "transition-appear-from",
+        appearActiveClass: "transition-appear-active",
+        appearToClass: "transition-appear-to",
+      },
+    });
+
+    expect(appearHTML).toBe(
+      `<div class="transition-appear-from transition-appear-active">1</div>` +
+        `<div class="transition-appear-from transition-appear-active">2</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="transition-appear-active transition-appear-to">1</div>` +
+        `<div class="transition-appear-active transition-appear-to">2</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` + `<div class="">2</div>`
+    );
+
+    // enter
+    const enterHTML = await render({
+      elements: [1, 2, 3],
+    });
+
+    expect(enterHTML).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-enter-from transition-enter-active">3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-enter-active transition-enter-to">3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="">3</div>`
+    );
+
+    // leave
+    const leaveHTML = await render({
+      elements: [1, 2],
+    });
+
+    expect(leaveHTML).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-leave-from transition-leave-active">3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` +
+        `<div class="">2</div>` +
+        `<div class="transition-leave-active transition-leave-to">3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div class="">1</div>` + `<div class="">2</div>`
+    );
+  });
+
+  it.skip("should not add move class if no move transition", () => {});
+
+  it("warn unkeyed children", async () => {
+    const spy =jest.spyOn(console, "error")
+    await render({
+      elements: [1, 2, 3],
+      transitionProps: {
+        key: undefined,
+      },
+    });
+
+    expect(spy).toBeCalledTimes(1);
+  });
 });

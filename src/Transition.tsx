@@ -94,7 +94,8 @@ const Transition = (props: TransitionProps) => {
       if (finishLeave.current) {
         finishLeave.current();
       }
-      const isAppear = appear && !isMounted.current;
+      const isAppear =
+        appear && !isMounted.current && (context ? context.isAppear : true);
       const [
         beforeHook,
         hook,
@@ -137,7 +138,7 @@ const Transition = (props: TransitionProps) => {
         whenTransitionEnds(el, onEnd, type);
       });
     },
-    [latestProps, isMounted]
+    [latestProps, isMounted, context]
   );
 
   const performLeave = useCallback(
@@ -242,9 +243,6 @@ const Transition = (props: TransitionProps) => {
 
   if (unmount && !localVisible) return null;
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("dev");
-  }
   // TODO add error handling and warning if multiple children
   const child = React.Children.only(children);
   const el = React.cloneElement(child, {

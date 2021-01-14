@@ -1,5 +1,5 @@
 import { AnyFunction, AnyObject } from "../types";
-export { whenTransitionEnds } from "./when-transition-ends";
+export { whenTransitionEnds, getTransitionInfo } from "./when-transition-ends";
 export type { CSSTransitionType } from "./when-transition-ends";
 
 export function isFunction(val: unknown): val is AnyFunction {
@@ -31,6 +31,8 @@ export function nextFrame(cb: () => void) {
     });
   });
 }
+
+// TODO remove `flatMap`
 
 export function addClass(el: Element, ...classes: string[]) {
   return classes

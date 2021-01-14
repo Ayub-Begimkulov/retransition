@@ -44,7 +44,7 @@ interface CSSTransitionInfo {
   hasTransform: boolean;
 }
 
-function getTransitionInfo(
+export function getTransitionInfo(
   el: Element,
   expectedType?: CSSTransitionType
 ): CSSTransitionInfo {

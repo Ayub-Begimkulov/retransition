@@ -11,21 +11,27 @@ describe("Test", () => {
   });
 
   it("Test", async () => {
-    await page().evaluate(() => {
+    const html = await page().evaluate(() => {
       return new Promise(res => {
         const { React, ReactDOM, ReactTransition } = window as any;
-        const { Transition } = ReactTransition;
-        const baseElement = document.querySelector("#app");
+        const { Transition, TransitionGroup } = ReactTransition;
+        const baseElement = document.querySelector("#app")!;
+        const arr = [1, 2];
+
         ReactDOM.render(
-          <Transition>
-            <div id="test">Hello</div>
-          </Transition>,
+          <TransitionGroup appear>
+            {arr.map(v => (
+              <Transition key={"$" + v}>
+                <div id="test">{v}</div>
+              </Transition>
+            ))}
+          </TransitionGroup>,
           baseElement,
-          res
+          () => res(baseElement.innerHTML)
         );
       });
     });
-
+    console.log(html);
     expect(await page().evaluate(() => !!document.querySelector("#test"))).toBe(
       true
     );

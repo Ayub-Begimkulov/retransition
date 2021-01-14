@@ -2,7 +2,14 @@ import React, { useLayoutEffect, useMemo, useReducer, useRef } from "react";
 import { TransitionGroupContext } from "./context";
 import { useHasChanged, useIsMounted, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
-import { addClass, combine, hasOwn, mapObject, removeClass } from "./utils";
+import {
+  addClass,
+  combine,
+  getTransitionInfo,
+  hasOwn,
+  mapObject,
+  removeClass,
+} from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -13,9 +20,16 @@ export interface TransitionGroupProps {
   name?: string;
   appear?: boolean;
   moveClass?: string;
-  children: React.ReactElement<TransitionProps>[];
+  children:
+    | React.ReactElement<TransitionProps>
+    | React.ReactElement<TransitionProps>[];
 }
 
+// TODO
+// 1) should transition group have an appear prop? if yes, how should it work
+// should it override a children props? or should it just compliment it?
+// 2) problem with updating parent component (transition stops)
+// 3) think about unnecessary `recordPosition` calls during rerender
 const TransitionGroup = ({
   name,
   appear,
@@ -34,16 +48,22 @@ const TransitionGroup = ({
 
   const ctxValue = useMemo(
     () => ({
+      // TODO maybe it's better to override child props according to
+      // isMounted instead of passing it though context
+      get isAppear() {
+        return !isMounted.current;
+      },
       register(el: Element) {
         newChildrenElements.current.push(el);
       },
       unregister(el: Element) {
+        // TODO use map/object for performance?
         prevChildrenElements.current = prevChildrenElements.current.filter(
           e => e !== el
         );
       },
     }),
-    []
+    [isMounted]
   );
 
   useLayoutEffect(() => {
@@ -56,11 +76,19 @@ const TransitionGroup = ({
         newChildrenElements.current = [];
       }
     };
-    if (!isMounted.current) {
+    // TODO refactor this shit
+    const moveCls = moveClass || `${name || "transition"}-move`;
+    const childrenToMove = prevChildrenElements.current;
+    let hasTransform = false;
+    if (childrenToMove[0]) {
+      childrenToMove[0].classList.add(moveCls);
+      hasTransform = getTransitionInfo(childrenToMove[0]).hasTransform;
+      childrenToMove[0].classList.remove(moveCls);
+    }
+    if (!isMounted.current || !hasTransform) {
       updateChildren();
       return;
     }
-    const childrenToMove = prevChildrenElements.current;
     // 3 separate loops for performance
     // https://stackoverflow.com/questions/19250971/why-a-tiny-reordering-of-dom-read-write-operations-causes-a-huge-performance-dif
     childrenToMove.forEach(el => (el as any)._endCb?.());
@@ -68,7 +96,6 @@ const TransitionGroup = ({
     const movedChildren = childrenToMove.filter(applyTranslation);
     forceReflow();
 
-    const moveCls = moveClass || `${name || "transition"}-move`;
     movedChildren.forEach(child => {
       addClass(child, moveCls);
       (child as HTMLElement).style.transitionDuration = "";
@@ -109,7 +136,10 @@ const getProp = (el: React.ReactElement, key: string) => {
   return el.props[key];
 };
 
-function useTransitionChildren(children: React.ReactNode, appear?: boolean) {
+function useTransitionChildren(
+  children: React.ReactElement | React.ReactElement[],
+  appear?: boolean
+) {
   // TODO think about different way to update children
   const [, forceRerender] = useReducer(x => x + 1, 0);
   const currentChildren = getChildMapping(children);
@@ -121,9 +151,10 @@ function useTransitionChildren(children: React.ReactNode, appear?: boolean) {
   const result = {} as typeof newChildren;
   if (!prevChildren) {
     for (const key in newChildren) {
+      const childAppear = getProp(newChildren[key], "appear");
       result[key] = React.cloneElement(newChildren[key], {
         visible: true,
-        appear,
+        appear: typeof childAppear === "boolean" ? childAppear : appear,
       });
     }
   } else {
@@ -143,6 +174,7 @@ function useTransitionChildren(children: React.ReactNode, appear?: boolean) {
       } else if (isNew) {
         result[key] = React.cloneElement(newChildren[key], {
           visible: true,
+          // TODO is it useful?
           appear: true,
         });
       } else {
