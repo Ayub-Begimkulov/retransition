@@ -38,21 +38,21 @@ const App = () => {
           >
             Toggle
           </button>
-          {false && (
+          {
             <Transition visible={visible} name="fade" appear unmount={false}>
               <div
                 style={{ width: 200, height: 200, background: "black" }}
               ></div>
             </Transition>
-          )}
+          }
           {<Sudoku />}
         </div>
       </div>
-      {false && (
+      {
         <div style={{ flex: 1 }}>
           <RandomNumbers />
         </div>
-      )}
+      }
     </div>
   );
 };

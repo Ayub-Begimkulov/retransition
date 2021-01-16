@@ -1,18 +1,19 @@
 import React, { ReactElement } from "react";
+import { hasOwn } from ".";
 
 export function getChildMapping(
   children: React.ReactElement | React.ReactElement[]
 ) {
   const result = {} as Record<string, ReactElement>;
   React.Children.forEach(children, child => {
-    if (!child.key) {
-      if (process.env.NODE_ENV === "development") {
-        throw new Error(
-          // TODO change accordion to the library name
-          "[ReactTransition]: <TransitionGroup /> children must have key"
-        );
-      }
-      return;
+    if (!child.key || hasOwn(result, child.key)) {
+      // if (process.env.NODE_ENV === "development") {
+      throw new Error(
+        // TODO change accordion to the library name
+        "[ReactTransition]: <TransitionGroup /> children must have unique keys"
+      );
+      // }
+      // return;
     }
     result[child.key] = child;
   });

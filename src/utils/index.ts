@@ -32,22 +32,16 @@ export function nextFrame(cb: () => void) {
   });
 }
 
-// TODO remove `flatMap`
-
 export function addClass(el: Element, ...classes: string[]) {
-  return classes
-    .flatMap(c => c.split(/\s+/))
-    .forEach(c => c && el.classList.add(c));
+  return classes.forEach(cls =>
+    cls.split(/\s+/).forEach(c => c && el.classList.add(c))
+  );
 }
 
 export function removeClass(el: Element, ...classes: string[]) {
-  return classes
-    .flatMap(c => c.split(/\s+/))
-    .forEach(c => el.classList.remove(c));
-}
-
-export function hasClass(el: Element, className: string) {
-  return el.classList.contains(className);
+  return classes.forEach(cls =>
+    cls.split(/\s+/).forEach(c => c && el.classList.remove(c))
+  );
 }
 
 export function mapObject<T extends AnyObject, V>(

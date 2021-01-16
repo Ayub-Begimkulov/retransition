@@ -50,7 +50,6 @@ export interface TransitionProps {
   children: React.ReactElement;
 }
 
-// TODO unmount or hide
 const Transition = (props: TransitionProps) => {
   const context = useContext(TransitionGroupContext);
   const latestProps = useLatest(props);

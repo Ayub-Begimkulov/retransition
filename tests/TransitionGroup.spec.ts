@@ -435,16 +435,4 @@ describe("TransitionGroup", () => {
   });
 
   it.skip("should not add move class if no move transition", () => {});
-
-  it("warn unkeyed children", async () => {
-    const spy =jest.spyOn(console, "error")
-    await render({
-      elements: [1, 2, 3],
-      transitionProps: {
-        key: undefined,
-      },
-    });
-
-    expect(spy).toBeCalledTimes(1);
-  });
 });
