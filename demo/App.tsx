@@ -23,27 +23,36 @@ function shuffle(array: any[]) {
 }
 
 const App = () => {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   return (
     <div style={{ display: "flex" }}>
       <div style={{ flex: 1 }}>
         <div style={{ height: 300 }}>
           <button
-            onClick={() => setVisible(v => !v)}
+            onClick={() => {
+              console.log("click");
+              setVisible(v => !v);
+            }}
             style={{ marginBottom: 20 }}
           >
             Toggle
           </button>
-          <Transition visible={visible} name="fade" appear unmount={false}>
-            <div style={{ width: 200, height: 200, background: "black" }}></div>
-          </Transition>
-          {false && <Sudoku />}
+          {
+            <Transition visible={visible} name="fade" appear unmount={false}>
+              <div
+                style={{ width: 200, height: 200, background: "black" }}
+              ></div>
+            </Transition>
+          }
+          {<Sudoku />}
         </div>
       </div>
-      <div style={{ flex: 1 }}>
-        <RandomNumbers />
-      </div>
+      {
+        <div style={{ flex: 1 }}>
+          <RandomNumbers />
+        </div>
+      }
     </div>
   );
 };
@@ -116,15 +125,13 @@ const RandomNumbers = () => {
           Remove Last
         </button>
       </div>
-      <TransitionGroup name="test" appear>
+      <TransitionGroup name="test" appear={false}>
         {arr.map(value => (
-          <div
-            style={{ padding: "5px 8px" }}
-            key={"$" + value}
-            data-key={"$" + value}
-          >
-            {value}
-          </div>
+          <Transition key={"$" + value}>
+            <div style={{ padding: "5px 8px" }} data-key={"$" + value}>
+              {value}
+            </div>
+          </Transition>
         ))}
       </TransitionGroup>
     </div>
@@ -149,9 +156,9 @@ const Sudoku = () => {
       <div className="container">
         <TransitionGroup name="cell">
           {numbers.map(({ id, number }) => (
-            <div key={id} className="cell">
-              {number}
-            </div>
+            <Transition key={id}>
+              <div className="cell">{number}</div>
+            </Transition>
           ))}
         </TransitionGroup>
       </div>

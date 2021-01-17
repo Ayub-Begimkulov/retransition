@@ -12,8 +12,11 @@ export function setupPuppeteer() {
     browser = await puppeteer.launch();
     page = await browser.newPage();
 
-    page.on("console", e => {
-      console.log(e.type(), e.text(), e.location());
+    page.on("console", async e => {
+      const type = e.type() as keyof Console;
+      typeof console[type] === "function"
+        ? console[type](e.text())
+        : console.log(e.type(), e.text());
     });
   });
 
