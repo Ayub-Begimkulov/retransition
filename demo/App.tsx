@@ -23,33 +23,34 @@ function shuffle(array: any[]) {
 }
 
 const App = () => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   return (
     <div style={{ display: "flex" }}>
       <div style={{ flex: 1 }}>
-        <div style={{ height: 300 }}>
-          <button
-            onClick={() => {
-              console.log("click");
-              setVisible(v => !v);
-            }}
-            style={{ marginBottom: 20 }}
-          >
-            Toggle
-          </button>
-          {
-            <Transition visible={visible} name="fade" appear unmount={false}>
+        <button
+          onClick={() => {
+            console.log("click");
+            setVisible(v => !v);
+          }}
+          style={{ marginBottom: 20 }}
+        >
+          Toggle
+        </button>
+        {
+          <div style={{ height: 250 }}>
+            <Transition visible={visible} name="fade">
               <div
                 style={{ width: 200, height: 200, background: "black" }}
               ></div>
             </Transition>
-          }
-          {<Sudoku />}
-        </div>
+          </div>
+        }
+        {<Sudoku />}
       </div>
       {
         <div style={{ flex: 1 }}>
+          <h2>TransitionGroup (add, remove + appear)</h2>
           <RandomNumbers />
         </div>
       }
@@ -107,12 +108,6 @@ const RandomNumbers = () => {
         <button style={{ margin: 8 }} onClick={() => shuffleArr()}>
           Shuffle
         </button>
-        <button
-          style={{ margin: 8 }}
-          onClick={() => setArr(x => [x[1], x[0], ...x.slice(2)])}
-        >
-          Swap
-        </button>
       </div>
       <div style={{ display: "flex" }}>
         <button style={{ margin: 8 }} onClick={() => remove()}>
@@ -125,7 +120,7 @@ const RandomNumbers = () => {
           Remove Last
         </button>
       </div>
-      <TransitionGroup name="test" appear={false}>
+      <TransitionGroup name="test" appear>
         {arr.map(value => (
           <Transition key={"$" + value}>
             <div style={{ padding: "5px 8px" }} data-key={"$" + value}>
