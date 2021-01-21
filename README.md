@@ -15,14 +15,16 @@ for `<TransitionGroup />`. More on the differences you can read in this section.
 
 Using npm:
 
+Right now this library is published as `@ayub-begimkulov/react-transition`. I used this name to publish the first version, but I'm still not sure how to name it (so if you how any ideas feel free to open an issue).
+
 ```bash
-npm i react-transition
+npm i @ayub-begimkulov/react-transition
 ```
 
 Or yarn:
 
 ```bash
-yarn add react-transition
+yarn add @ayub-begimkulov/react-transition
 ```
 
 Note that this uses hooks, so you need to have `react` and `react-dom` 16.8.0 or higher.
@@ -79,87 +81,23 @@ const App = () => {
 
 #### Props
 
-**visible**
-Determents wether to show component or nor, trigger transition on change
-type: `boolean`
-default: `false`
-
-**name**
-The name of the transition, used to generate a default transition classes
-type: `string`
-default: `transition`
-
-**appear**
-By default enter transition is not performed on initial render, if you want this behavior set `appear` and `visible` to `true`;  
-type: `string`
-default: `transition`
-
-**nodeRef**
-`<Transition />` component passes `ref` to it's children. So if you also want to use `ref` pass it to the wrapping `<Transition />` component.
-type: `React.MutableRef<Element | null> | ((node: Element) => void)`
-default: `transition`
-
-**unmount**
-By default the child is unmounted on exit. If you prefer no unmounting (hided with `display: none`) change this to `false`.
-
-type: `boolean`
-default: `true`
-
-**type**
-TODO
-
-type: `'animation' | 'transition' | undefined`
-default: `undefined`
-
-**enterFromClass**
-Class that sets the starting styles of enter transition.
-
-type: `string`
-default: `` `${name}-enter-from` ``
-
-**enterActiveClass**
-Class that sets the active style of enter transition. This class can be used to define the duration, delay and easing curve for the entering transition.
-
-type: `string`
-default: `` `${name}-enter-to` ``
-
-**enterToClass**
-Class that sets the ending styles of enter transition.
-type: `string`
-default: `` `${name}-enter-active` ``
-
-**leaveFromClass**
-Class that sets the starting styles of leave transition.
-
-type: `string`
-default: `` `${name}-leave-from` ``
-
-**leaveActiveClass**
-Class that sets the active style of leave transition. This class can be used to define the duration, delay and easing curve for the leaving transition.
-
-type: `string`
-default: `` `${name}-leave-active` ``
-
-**leaveToClass**
-Class that sets the ending styles of leave transition.
-type: `string`
-default: `` `${name}-leave-to` ``
-
-**appearFromClass**
-Class that sets the starting styles of appear transition.
-type: `string`
-default: `` `${name}-appear-from` ``
-
-**appearActiveClass**
-Class that sets the active style of appear transition. This class can be used to define the duration, delay and easing curve for the appearing transition.
-
-type: `string`
-default: `` `${name}-appear-active` ``
-
-**appearToClass**
-Class that sets the ending styles of appear transition.
-type: `string`
-default: `` `${name}-appear-to` ``
+| name              | type                      | default                       | description                                                                                                                                                |
+| ----------------- | ------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| visible           | `boolean`                 | `false`                       | Determents wether to show component or nor, trigger transition on change                                                                                   |
+| name              | `string`                  | `transition`                  | The name of the transition, used to generate a default transition classes                                                                                  |
+| appear            | `boolean`                 | `false`                       | DBy default enter transition is not performed on initial render, if you want this behavior set `appear` and `visible` to `true`                            |
+| nodeRef           | `React.MutableRef<Element | null>                         | ((node: Element) => void`                                                                                                                                  | `undefined` | `<Transition />` component passes `ref` to it's children. So if you also want to use `ref` pass it to the wrapping `<Transition />` component |
+| unmount           | `boolean`                 | `true`                        | By default the child is unmounted on exit. If you prefer no unmounting (hided with `display: none`) change this to `false`.                                |
+| type              | `'animation'              | 'transition'                  | undefined`                                                                                                                                                 | `undefined` | TODO                                                                                                                                          |
+| enterFromClass    | `string`                  | `` `${name}-enter-from` ``    | Class that sets the starting styles of enter transition.                                                                                                   |
+| enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Class that sets the active style of enter transition. This class can be used to define the duration, delay and easing curve for the entering transition.   |
+| enterToClass      | `string`                  | `` `${name}-enter-active` ``  | Class that sets the ending styles of enter transition.                                                                                                     |
+| leaveFromClass    | `string`                  | `` `${name}-leave-from` ``    | Class that sets the starting styles of leave transition.                                                                                                   |
+| leaveActiveClass  | `string`                  | `` `${name}-leave-active` ``  | Class that sets the active style of leave transition. This class can be used to define the duration, delay and easing curve for the leaving transition.    |
+| leaveToClass      | `string`                  | `` `${name}-leave-to` ``      | Class that sets the ending styles of leave transition.                                                                                                     |
+| appearFromClass   | `string`                  | `` `${name}-appear-from` ``   | Class that sets the starting styles of appear transition.                                                                                                  |             |
+| appearActiveClass | `string`                  | `` `${name}-appear-active` `` | Class that sets the active style of appear transition. This class can be used to define the duration, delay and easing curve for the appearing transition. |
+| appearToClass     | `string`                  | `` `${name}-appear-to` ``     | Class that sets the ending styles of appear transition.                                                                                                    |
 
 ### TransitionGroup
 
@@ -167,26 +105,12 @@ This is a container that wraps your `<Transition>` components and enter/leave tr
 
 #### Props
 
-**name**
-Name for your child transitions, also used to generate moveClass if it's not provided.
-
-type: `string`
-default: `transition`
-
-**moveClass**
-Class that would be added to children that are `moved` due to element addition/removal.
-
-type: `string`
-default: `` `${name}-move` ``
-
-**appear**
-if true performs appear transition for all of it's on initial render.
-
-type: `boolean`
-default: `false`
-
-**children**
-Elements wrapped in `<Transition />` component.
+| name      | type                 | default              | description                                                                             |
+| --------- | -------------------- | -------------------- | --------------------------------------------------------------------------------------- |
+| name      | `string`             | `transition`         | Name for your child transitions, also used to generate moveClass if it's not provided.  |
+| moveClass | `string`             | `` `${name}-move` `` | Class that would be added to children that are `moved` due to element addition/removal. |
+| appear    | `boolean`            | `false`              | if true performs appear transition for all of it's on initial render.                   |
+| children  | `React.ReactElement` | -                    | Elements wrapped in `<Transition />` component.                                         |
 
 <!-- ### Utils
 
