@@ -44,7 +44,7 @@
       animation: enter 50ms ease 1;
     }
     .anim-leave-active {
-      animation: leave 50ms ease 1 reverse;
+      animation: leave 50ms ease 1;
     }
     .anim-leave-from,
     .anim-enter-to {
@@ -60,10 +60,10 @@
     }
     @keyframes leave {
       0% {
-        opacity: 0;
+        opacity: 1;
       }
       100% {
-        opacity: 1;
+        opacity: 0;
       }
     }
     .transition-move {
