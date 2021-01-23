@@ -7,19 +7,19 @@ Library that helps you create smooth css transitions in your react app.
 I decided to create this package because often used `react-transition-group`
 but I didn't like some things about it. For instance you have to pass `timeout`
 or provide your custom `addEndListener`. Also you don't have a "move" transition
-for `<TransitionGroup />`. More on the differences you can read in this section.
+for `<TransitionGroup />`.
 
 ## Install
 
-Using npm:
-
 Right now this library is published as `@ayub-begimkulov/react-transition`. I used this name to publish the first version, but I'm still not sure how to name it (so if you how any ideas feel free to open an issue).
+
+npm:
 
 ```bash
 npm i @ayub-begimkulov/react-transition
 ```
 
-Or yarn:
+or yarn:
 
 ```bash
 yarn add @ayub-begimkulov/react-transition
@@ -329,17 +329,6 @@ This is a container that wraps your `<Transition>` components and performs enter
 | moveClass | `string`             | `` `${name}-move` `` | Class that would be added to children that are `moved` due to element addition/removal. |
 | appear    | `boolean`            | `false`              | if true performs appear transition for all of it's on initial render.                   |
 | children  | `React.ReactElement` | -                    | Elements wrapped in `<Transition />` component. |
-
-<!-- ### Utils
-
-This package is also exposes some of it's internal utils, so if you
-need them in some cases you don't have to write them yourself
-
-#### whenTransitionEnds
-
-#### getTransitionInfo -->
-
-<!-- ## Differences from react-transition-group -->
 
 ## Contribution
 
