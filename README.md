@@ -2,8 +2,6 @@
 
 Library that helps you create smooth css transitions in your react app.
 
-### `Note that this documentation is still work in progress`
-
 ## Why?
 
 I decided to create this package because often used `react-transition-group`
@@ -39,7 +37,7 @@ Note that this library uses hooks, so you need to have `react` and `react-dom` 1
 import React, { useState } from "react";
 import { Transition } from "@ayub-begimkulov/react-transition";
 
-import "./index.scss";
+import "./index.css";
 
 const App = () => {
   const [visible, setVisible] = useState(false);
@@ -82,7 +80,7 @@ const App = () => {
 import React, { useState } from "react";
 import { Transition } from "@ayub-begimkulov/react-transition";
 
-import "./index.scss";
+import "./index.css";
 
 const App = () => {
   const [visible, setVisible] = useState(false);
@@ -129,6 +127,8 @@ const App = () => {
 import React, { useState } from "react";
 import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
 import { shuffle } from "lodash-es";
+
+import "./index.css";
 
 const makeArr = () => {
   return Array(81)
@@ -193,10 +193,14 @@ const App = () => {
 
 ### TransitionGroup Enter, Leave and Move
 
+[Try in codesandbox](https://codesandbox.io/s/transition-group-list-example-dkw6e?file=/src/App.js)
+
 ```jsx
 import React, { useState } from "react";
 import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
 import { shuffle } from "lodash-es";
+
+import "./index.css";
 
 const getRandomIndex = (length: number) => Math.floor(Math.random() * length);
 
@@ -256,7 +260,7 @@ const App = () => {
 };
 ```
 
-```scss
+```css
 .fade-leave-to,
 .fade-enter-from {
   transform: translateX(200px);
@@ -266,6 +270,14 @@ const App = () => {
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.fade-leave-active {
+  /* 
+    not that we add absolute position to leaving element
+    so other elements change their position and trigger move transition 
+  */
+  position: absolute;
 }
 
 .fade-leave-from,
@@ -329,6 +341,10 @@ need them in some cases you don't have to write them yourself
 
 <!-- ## Differences from react-transition-group -->
 
-```
+## Contribution
 
-```
+If you have any question, suggestions or improvements, feel free to open issue or pull request.
+
+## License
+
+MIT.

@@ -91,7 +91,7 @@ const NumbersList = () => {
   };
 
   const remove = () => {
-    const index = 0; //getRandomIndex(numbers.length);
+    const index = getRandomIndex(numbers.length);
     const newValue = numbers.filter((_, idx) => idx !== index);
     setNumbers(newValue);
   };

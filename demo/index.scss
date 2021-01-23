@@ -10,6 +10,10 @@
     transition: all 500ms ease;
   }
 
+  &-leave-active {
+    position: absolute;
+  }
+
   &-enter-to,
   &-leave-from {
     transform: translateX(0px);
