@@ -1,17 +1,15 @@
 {
   "private": true,
   "name": "@ayub-begimkulov/react-transition",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c",
-    "test": "jest",
+    "test": "yarn build && npm run build --prefix tests/app && npm run build --prefix tests/app2 && jest",
     "dev": "cd demo && npm run dev",
-    "build-and-test": "npm run build --prefix tests/app && npm run test",
-    "test-group": "npm run build --prefix tests/app2 && npm run test ./tests/TransitionGroup.spec.ts",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
   },
   "keywords": [
@@ -59,6 +57,7 @@
     "puppeteer": "^5.4.1",
     "react": "^17.0.1",
     "rollup": "^2.33.3",
+    "rollup-plugin-istanbul": "^3.0.0",
     "rollup-plugin-size-snapshot": "^0.12.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.29.0",

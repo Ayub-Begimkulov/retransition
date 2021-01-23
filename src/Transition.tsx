@@ -210,7 +210,6 @@ const Transition = (props: TransitionProps) => {
           initialDisplay.current = (elRef.current as HTMLElement).style.display;
           (elRef.current as HTMLElement).style.display = "none";
         }
-        console.log("return");
         // do not run `performLeave` on initial render
         return;
       }
@@ -222,6 +221,7 @@ const Transition = (props: TransitionProps) => {
     performEnter,
     previousVisible,
     localVisibleRef,
+    latestProps,
     isMounted,
   ]);
 

@@ -10,6 +10,10 @@
     transition: all 500ms ease;
   }
 
+  &-leave-active {
+    position: absolute;
+  }
+
   &-enter-to,
   &-leave-from {
     transform: translateX(0px);
@@ -21,28 +25,26 @@
   }
 }
 
-.test {
-  &-enter-from,
-  &-leave-to {
-    transform: translateX(300px);
-  }
-
-  &-enter-active,
-  &-leave-active {
-    transition: transform 600ms ease;
+.fade-animation {
+  &-enter-active {
+    animation: rotate-in 500ms ease;
   }
 
   &-leave-active {
-    position: absolute;
-  }
-
-  &-enter-to,
-  &-leave-from {
-    transform: translateX(0);
+    animation: rotate-in 500ms ease reverse;
   }
 
   &-move {
     transition: transform 500ms ease;
+  }
+}
+
+@keyframes rotate-in {
+  0% {
+    transform: scale(0) rotate(360deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
   }
 }
 
