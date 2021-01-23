@@ -9,8 +9,10 @@ export function getChildMapping(
     if (!child.key || hasOwn(result, child.key)) {
       // if (process.env.NODE_ENV === "development") {
       throw new Error(
-        // TODO change accordion to the library name
-        "[ReactTransition]: <TransitionGroup /> children must have unique keys"
+        "[react-transition]: <TransitionGroup /> children must have unique keys." +
+          "The key " +
+          child.key +
+          " is already used"
       );
       // }
       // return;

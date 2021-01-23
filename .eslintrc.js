@@ -12,7 +12,7 @@ module.exports = {
       version: "detect",
     },
   },
-  ignorePatterns: ["dist", "webpack.config.js"],
+  ignorePatterns: ["dist", "docs", "tests", "*.config.js"],
   extends: [
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",

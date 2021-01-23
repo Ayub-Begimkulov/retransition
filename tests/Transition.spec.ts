@@ -1,6 +1,6 @@
 import path from "path";
-import { TransitionProps } from "../dist/Transition";
-import { AnyFunction, AnyObject } from "../dist/types";
+import { TransitionProps } from "../src/Transition";
+import { AnyFunction, AnyObject } from "../src/types";
 import { setupPuppeteer } from "./test-utils";
 
 export function omitBy<T extends AnyObject>(
@@ -14,13 +14,6 @@ export function omitBy<T extends AnyObject>(
     return acc;
   }, {} as T);
 }
-
-// function pickBy<T extends AnyObject>(
-//   obj: T,
-//   predicate: (val: T[keyof T]) => boolean
-// ) {
-//   return omitBy(obj, v => !predicate(v));
-// }
 
 describe("Transition", () => {
   const {
