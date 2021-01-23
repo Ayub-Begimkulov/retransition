@@ -33,6 +33,7 @@ const TransitionGroup = React.memo(
     // TODO can you pass info from memo compare function
     // so we don't need to check for children difference
     if (childrenChanged && prevChildrenElements.current.length > 0) {
+      console.log("record positon");
       prevChildrenElements.current.forEach(recordPosition);
     }
 
@@ -90,6 +91,7 @@ const TransitionGroup = React.memo(
       childrenToMove.forEach(el => (el as any)._endCb?.());
       childrenToMove.forEach(recordNewPosition);
       const movedChildren = childrenToMove.filter(applyTranslation);
+      console.log(movedChildren);
       forceReflow();
 
       movedChildren.forEach(child => {
@@ -241,6 +243,7 @@ function recordNewPosition(el: Element) {
 function applyTranslation(c: Element) {
   const oldPos = positionMap.get(c);
   const newPos = newPositionMap.get(c);
+  console.log(oldPos, newPos);
   if (!oldPos || !newPos) return;
   const dx = oldPos.left - newPos.left;
   const dy = oldPos.top - newPos.top;

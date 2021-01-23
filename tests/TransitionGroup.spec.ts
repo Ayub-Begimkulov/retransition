@@ -187,6 +187,39 @@ describe("TransitionGroup", () => {
     );
   });
 
+  it("remove + move", async () => {
+    await render({
+      elements: [1, 2, 3],
+    });
+    expect(await html("#container")).toBe(
+      `<div>1</div><div>2</div><div>3</div>`
+    );
+
+    await render({
+      elements: [1, 3],
+    });
+
+    expect(await html("#container")).toBe(
+      `<div>1</div>` +
+        `<div class="transition-leave-from transition-leave-active">2</div>` +
+        `<div class="transition-move" style="">3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#container")).toBe(
+      `<div>1</div>` +
+        `<div class="transition-leave-active transition-leave-to">2</div>` +
+        `<div class="transition-move" style="">3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#container")).toBe(
+      `<div>1</div><div class="" style="">3</div>`
+    );
+  });
+
   it("appear passed to TransitionGroup", async () => {
     const appearHTML = await render({
       elements: [1, 2],

@@ -33,6 +33,8 @@ Note that this library uses hooks, so you need to have `react` and `react-dom` 1
 
 ### CSS Transition
 
+[Try in codesandbox](https://codesandbox.io/s/css-transiton-basic-example-928fh?file=/src/App.js)
+
 ```jsx
 import React, { useState } from "react";
 import { Transition } from "@ayub-begimkulov/react-transition";
@@ -53,28 +55,28 @@ const App = () => {
 };
 ```
 
-```scss
-.fade {
-  &-leave-to,
-  &-enter-from {
-    opacity: 0;
-    transform: translateX(300px);
-  }
+```css
+.fade-leave-to,
+.fade-enter-from {
+  opacity: 0;
+  transform: translateX(300px);
+}
 
-  &-enter-active,
-  &-leave-active {
-    transition: all 500ms ease;
-  }
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 500ms ease;
+}
 
-  &-leave-from,
-  &-enter-to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.fade-leave-from,
+.fade-enter-to {
+  opacity: 1;
+  transform: translateX(0);
 }
 ```
 
 ### CSS Animation
+
+[Try in codesandbox](https://codesandbox.io/s/css-animation-example-nroet?file=/src/App.js)
 
 ```jsx
 import React, { useState } from "react";
@@ -96,19 +98,17 @@ const App = () => {
 };
 ```
 
-```scss
-.fade-animation {
-  &-enter-active {
-    animation: rotate-in 500ms ease;
-  }
+```css
+.fade-animation-enter-active {
+  animation: rotate-in 500ms ease;
+}
 
-  &-leave-active {
-    animation: rotate-in 500ms ease reverse;
-  }
+.fade-animation-leave-active {
+  animation: rotate-in 500ms ease reverse;
+}
 
-  &-move {
-    transition: transform 500ms ease;
-  }
+.fade-animation-move {
+  transition: transform 500ms ease;
 }
 
 @keyframes rotate-in {
@@ -123,8 +123,10 @@ const App = () => {
 
 ### TransitionGroup Move
 
+[Try in codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
+
 ```jsx
-import React from "react";
+import React, { useState } from "react";
 import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
 import { shuffle } from "lodash-es";
 
@@ -157,7 +159,7 @@ const App = () => {
 };
 ```
 
-```scss
+```css
 .container {
   display: flex;
   flex-wrap: wrap;
@@ -192,7 +194,7 @@ const App = () => {
 ### TransitionGroup Enter, Leave and Move
 
 ```jsx
-import React from "react";
+import React, { useState } from "react";
 import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
 import { shuffle } from "lodash-es";
 
@@ -255,27 +257,25 @@ const App = () => {
 ```
 
 ```scss
-.fade {
-  &-leave-to,
-  &-enter-from {
-    transform: translateX(200px);
-    opacity: 0;
-  }
+.fade-leave-to,
+.fade-enter-from {
+  transform: translateX(200px);
+  opacity: 0;
+}
 
-  &-enter-active,
-  &-leave-active {
-    transition: opacity 500ms ease, transform 500ms ease;
-  }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 500ms ease, transform 500ms ease;
+}
 
-  &-leave-from,
-  &-enter-to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.fade-leave-from,
+.fade-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
 
-  &-move {
-    transition: transform 500ms ease;
-  }
+.fade-move {
+  transition: transform 500ms ease;
 }
 ```
 
