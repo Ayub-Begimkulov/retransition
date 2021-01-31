@@ -198,7 +198,7 @@ describe("TransitionGroup", () => {
     await render({
       elements: [1, 3],
     });
-    // TODO fix this issue
+
     expect(await html("#container")).toBe(
       `<div>1</div>` +
         `<div class="transition-leave-from transition-leave-active">2</div>` +

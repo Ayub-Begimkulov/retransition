@@ -334,7 +334,7 @@ describe("Transition", () => {
     expect(await classList("#transition-element")).toEqual([]);
   });
 
-  it("transition events w/ appear, calls enter events if no appear one passed", async () => {
+  it("transition events w/ appear, calls enter events if no appear events passed", async () => {
     const onBeforeEnter = jest.fn();
     const onEnter = jest.fn();
     const onAfterEnter = jest.fn();
@@ -441,7 +441,143 @@ describe("Transition", () => {
   });
 
   it.skip("customAppear no appear is passed", async () => {});
-  it.skip("customAppear transition events", async () => {});
+
+  it("customAppear w/ transition events", async () => {
+    const onBeforeEnter = jest.fn();
+    const onEnter = jest.fn();
+    const onAfterEnter = jest.fn();
+    const onBeforeLeave = jest.fn();
+    const onLeave = jest.fn();
+    const onAfterLeave = jest.fn();
+    const onBeforeAppear = jest.fn();
+    const onAppear = jest.fn();
+    const onAfterAppear = jest.fn();
+
+    const appearClasses = await render({
+      visible: true,
+      name: "test",
+      appear: true,
+      customAppear: true,
+      onBeforeEnter,
+      onEnter,
+      onAfterEnter,
+      onBeforeLeave,
+      onLeave,
+      onAfterLeave,
+      onBeforeAppear,
+      onAppear,
+      onAfterAppear,
+    });
+
+    // appear
+    expect(appearClasses).toEqual(["test-appear-from", "test-appear-active"]);
+    expect(onBeforeAppear).toBeCalledTimes(1);
+    expect(onAppear).toBeCalledTimes(1);
+    expect(onAfterAppear).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-appear-active",
+      "test-appear-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterAppear).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+
+    // leave
+    const leaveClasses = await render({ visible: false });
+    expect(onBeforeLeave).toBeCalledTimes(1);
+    expect(onLeave).toBeCalledTimes(1);
+    expect(onAfterLeave).not.toBeCalled();
+    expect(leaveClasses).toEqual(["test-leave-from", "test-leave-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterLeave).toBeCalledTimes(1);
+    expect(await html("#container")).toBe("");
+
+    // enter
+    const enterClasses = await render({ visible: true });
+    expect(enterClasses).toEqual(["test-enter-from", "test-enter-active"]);
+    expect(onBeforeEnter).toBeCalledTimes(1);
+    expect(onEnter).toBeCalledTimes(1);
+    expect(onAfterEnter).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterEnter).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+  });
+
+  it("customAppear enter events are not used as default values", async () => {
+    const onBeforeEnter = jest.fn();
+    const onEnter = jest.fn();
+    const onAfterEnter = jest.fn();
+    const onBeforeLeave = jest.fn();
+    const onLeave = jest.fn();
+    const onAfterLeave = jest.fn();
+
+    const appearClasses = await render({
+      visible: true,
+      name: "test",
+      appear: true,
+      customAppear: true,
+      onBeforeEnter,
+      onEnter,
+      onAfterEnter,
+      onBeforeLeave,
+      onLeave,
+      onAfterLeave,
+    });
+
+    // appear
+    expect(appearClasses).toEqual(["test-appear-from", "test-appear-active"]);
+    expect(onBeforeEnter).not.toBeCalled();
+    expect(onEnter).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-appear-active",
+      "test-appear-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterEnter).not.toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+
+    // leave
+    const leaveClasses = await render({ visible: false });
+    expect(onBeforeLeave).toBeCalledTimes(1);
+    expect(onLeave).toBeCalledTimes(1);
+    expect(onAfterLeave).not.toBeCalled();
+    expect(leaveClasses).toEqual(["test-leave-from", "test-leave-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterLeave).toBeCalledTimes(1);
+    expect(await html("#container")).toBe("");
+
+    // enter
+    const enterClasses = await render({ visible: true });
+    expect(enterClasses).toEqual(["test-enter-from", "test-enter-active"]);
+    expect(onBeforeEnter).toBeCalledTimes(1);
+    expect(onEnter).toBeCalledTimes(1);
+    expect(onAfterEnter).not.toBeCalledTimes(1);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(onAfterEnter).toBeCalledTimes(1);
+    expect(await classList("#transition-element")).toEqual([]);
+  });
 
   it("no transition detected", async () => {
     await render({
@@ -519,9 +655,71 @@ describe("Transition", () => {
 
   it.todo("explicit type");
 
-  it.todo("transition cancel (enter/leave)");
+  it("transition cancel (appear/enter/leave)", async () => {
+    const onEnterCancelled = jest.fn();
+    const onAfterEnter = jest.fn();
+    const onLeaveCancelled = jest.fn();
+    const onAfterLeave = jest.fn();
+    const onAppearCancelled = jest.fn();
+    const onAfterAppear = jest.fn();
 
-  it.todo("warn if wrong children");
+    const appearClasses = await render({
+      visible: true,
+      name: "test",
+      appear: true,
+      onAfterEnter,
+      onEnterCancelled,
+      onAfterLeave,
+      onLeaveCancelled,
+      onAfterAppear,
+      onAppearCancelled,
+    });
+
+    // appear
+    expect(appearClasses).toEqual(["test-enter-from", "test-enter-active"]);
+    expect(onAppearCancelled).not.toBeCalled();
+    expect(onAfterAppear).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+
+    // leave
+    let leaveClasses = await render({ visible: false });
+    expect(leaveClasses).toEqual(["test-leave-from", "test-leave-active"]);
+    expect(onAppearCancelled).toBeCalled();
+    expect(onAfterAppear).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+
+    // enter
+    const enterClasses = await render({ visible: true });
+    expect(enterClasses).toEqual(["test-enter-from", "test-enter-active"]);
+    expect(onLeaveCancelled).toBeCalled();
+    expect(onAfterLeave).not.toBeCalled();
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+
+    leaveClasses = await render({ visible: false });
+    expect(leaveClasses).toEqual(["test-leave-from", "test-leave-active"]);
+    expect(onAfterEnter).not.toBeCalled();
+    expect(onEnterCancelled).toBeCalled();
+
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(await html("#container")).toBe("");
+  });
 
   it.todo(
     "`unmount: false, visible: false` shouldn't run enter animation on initial render"
