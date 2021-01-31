@@ -1,4 +1,6 @@
 import React, {
+  Children,
+  cloneElement,
   useCallback,
   useContext,
   useLayoutEffect,
@@ -22,6 +24,7 @@ export interface TransitionProps {
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
+  customAppear?: boolean;
   unmount?: boolean;
   nodeRef?:
     | React.MutableRefObject<Element | null>
@@ -66,26 +69,30 @@ const Transition = (props: TransitionProps) => {
   const finishEnter = useRef<(() => void) | null>(null);
   const finishLeave = useRef<(() => void) | null>(null);
   const initialDisplay = useRef<string | null>(null);
-
   const performEnter = useCallback(
     (el: Element) => {
       const {
         type,
         appear = false,
         unmount = true,
+        customAppear = false,
         name = "transition",
         enterFromClass = `${name}-enter-from`,
         enterActiveClass = `${name}-enter-active`,
         enterToClass = `${name}-enter-to`,
-        appearFromClass = enterFromClass,
-        appearActiveClass = enterActiveClass,
-        appearToClass = enterToClass,
+        appearFromClass = customAppear ? `${name}-appear-from` : enterFromClass,
+        appearActiveClass = customAppear
+          ? `${name}-appear-active`
+          : enterActiveClass,
+        appearToClass = customAppear ? `${name}-appear-to` : enterToClass,
         onBeforeEnter,
         onEnter,
         onAfterEnter,
-        onBeforeAppear = onBeforeEnter,
-        onAppear = onEnter,
-        onAfterAppear = onAfterEnter,
+        // TODO should enter events be used if
+        // the customAppear is true
+        onBeforeAppear = customAppear ? undefined : onBeforeEnter,
+        onAppear = customAppear ? undefined : onEnter,
+        onAfterAppear = customAppear ? undefined : onAfterEnter,
       } = latestProps.current;
       if (!appear && !isMounted.current) {
         return;
@@ -197,9 +204,7 @@ const Transition = (props: TransitionProps) => {
       ) {
         elRef.current && performEnter(elRef.current);
       }
-      // TODO add comment for this shit
-      // TODO fix === false
-      // latestProps doesn't have a default values for props
+      // TODO latestProps doesn't have a default values for props
       if (latestProps.current.unmount === false) {
         elRef.current && performEnter(elRef.current);
       }
@@ -242,9 +247,23 @@ const Transition = (props: TransitionProps) => {
 
   if (unmount && !localVisible) return null;
 
-  // TODO add error handling and warning if multiple children
-  const child = React.Children.only(children);
-  const el = React.cloneElement(child, {
+  let child: React.ReactElement;
+
+  try {
+    child = Children.only(children);
+  } catch (e) {
+    if (process.env.NODE_ENV === "development" || process.env.TESTING) {
+      console.error(
+        "[react-transition]: wrong `children` passed to the <Transition> component " +
+          "expected to have `ReactElement`, got " +
+          typeof children
+      );
+      // TODO should we throw original error?
+      throw e;
+    }
+    return null;
+  }
+  const el = cloneElement(child, {
     ref,
   });
   return el;

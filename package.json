@@ -8,7 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c",
-    "test": "yarn build && npm run build --prefix tests/app && npm run build --prefix tests/app2 && jest",
+    "test": "TESTING=true yarn build && npm run build --prefix tests/app && npm run build --prefix tests/app2 && jest",
     "dev": "cd demo && npm run dev",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
   },

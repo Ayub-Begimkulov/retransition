@@ -1,8 +1,16 @@
-import React, { useLayoutEffect, useMemo, useReducer, useRef } from "react";
+import React, {
+  Children,
+  cloneElement,
+  memo,
+  useLayoutEffect,
+  useMemo,
+  useReducer,
+  useRef,
+} from "react";
 import { TransitionGroupContext } from "./context";
 import { useHasChanged, useIsMounted, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
-import { addClass, combine, hasOwn, mapObject, removeClass } from "./utils";
+import { addClass, combine, hasOwn, removeClass } from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -18,14 +26,11 @@ export interface TransitionGroupProps {
     | React.ReactElement<TransitionProps>[];
 }
 
-// TODO
-// 1) should transition group have an appear prop? if yes, how should it work
-// should it override a children props? or should it just compliment it?
-// 2) problem with updating parent component (transition stops)
-// 3) think about unnecessary `recordPosition` calls during rerender
-const TransitionGroup = React.memo(
+const TransitionGroup = memo(
   ({ name, appear, moveClass, children }: TransitionGroupProps) => {
     const isMounted = useIsMounted();
+    // TODO test if it's useful to have
+    // `newChildrenElements` array
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
@@ -33,15 +38,12 @@ const TransitionGroup = React.memo(
     // TODO can you pass info from memo compare function
     // so we don't need to check for children difference
     if (childrenChanged && prevChildrenElements.current.length > 0) {
-      console.log("record positon");
       prevChildrenElements.current.forEach(recordPosition);
     }
 
     const ctxValue = useMemo(
       () => ({
-        // TODO maybe it's better to override child props according to
-        // isMounted instead of passing it though context
-        // TODO rename getter name
+        // TODO rename getter
         get isAppear() {
           return !isMounted.current;
         },
@@ -58,31 +60,19 @@ const TransitionGroup = React.memo(
       [isMounted]
     );
 
+    // TODO check performance cost of everything
     useLayoutEffect(() => {
       const updateChildren = () => {
         if (newChildrenElements.current.length > 0) {
-          prevChildrenElements.current = [
-            ...prevChildrenElements.current,
-            ...newChildrenElements.current,
-          ];
+          prevChildrenElements.current = prevChildrenElements.current.concat(
+            newChildrenElements.current
+          );
           newChildrenElements.current = [];
         }
       };
       const moveCls = moveClass || `${name || "transition"}-move`;
       const childrenToMove = prevChildrenElements.current;
-      // TODO think about `hasTransform` logic
-      // what should you do if user passes
-      // different classes to each child of <TransitionGroup />
-      // and some of them doesn't have the transition
-      // so we would add unnecessary classes and they won't get
-      // removed
-      // let hasTransform = false;
-      // if (childrenToMove[0]) {
-      //   childrenToMove[0].classList.add(moveCls);
-      //   hasTransform = getTransitionInfo(childrenToMove[0]).hasTransform;
-      //   childrenToMove[0].classList.remove(moveCls);
-      // }
-      if (!isMounted.current /*  || !hasTransform */) {
+      if (!isMounted.current) {
         updateChildren();
         return;
       }
@@ -91,7 +81,6 @@ const TransitionGroup = React.memo(
       childrenToMove.forEach(el => (el as any)._endCb?.());
       childrenToMove.forEach(recordNewPosition);
       const movedChildren = childrenToMove.filter(applyTranslation);
-      console.log(movedChildren);
       forceReflow();
 
       movedChildren.forEach(child => {
@@ -115,16 +104,11 @@ const TransitionGroup = React.memo(
       updateChildren();
     }, [children, moveClass, name, isMounted]);
 
-    const childrenToRender = useTransitionChildren(children, appear);
+    const childrenToRender = useTransitionChildren(children, appear, name);
+
     return (
       <TransitionGroupContext.Provider value={ctxValue}>
-        {mapObject(childrenToRender, value => {
-          return React.cloneElement(value, {
-            // TODO pass everything from `useTransitionChildren`
-            // TODO should it override name?
-            name,
-          });
-        })}
+        {childrenToRender}
       </TransitionGroupContext.Provider>
     );
   },
@@ -150,10 +134,10 @@ function arePropsEqual(
   for (let i = 0, l = prevKeys.length; i < l; i++) {
     const key = prevKeys[i];
     if (key === "children") {
-      const prevChildren = React.Children.toArray(
+      const prevChildren = Children.toArray(
         prevProps["children"]
       ) as React.ReactElement[];
-      const nextChildren = React.Children.toArray(
+      const nextChildren = Children.toArray(
         nextProps["children"]
       ) as React.ReactElement[];
       if (prevChildren.length !== nextChildren.length) {
@@ -178,7 +162,8 @@ const getProp = (el: React.ReactElement, key: string, defaultValue?: any) => {
 
 function useTransitionChildren(
   children: React.ReactElement | React.ReactElement[],
-  appear: boolean | undefined
+  appear: boolean | undefined,
+  name?: string
 ) {
   // TODO think about different way to update children
   const [, forceRerender] = useReducer(x => x + 1, 0);
@@ -188,15 +173,19 @@ function useTransitionChildren(
   const newChildren = currentChildren;
   const prevChildren = prevChildrenMapping.current;
 
-  const result = {} as typeof newChildren;
+  const result: React.ReactElement[] = [];
   if (!prevChildren) {
     for (const key in newChildren) {
       const childAppear = getProp(newChildren[key], "appear", appear);
-      result[key] = React.cloneElement(newChildren[key], {
-        key,
-        visible: true,
-        appear: childAppear,
-      });
+      const childName = getProp(newChildren[key], "name", name);
+      result.push(
+        cloneElement(newChildren[key], {
+          key,
+          visible: true,
+          appear: childAppear,
+          name: childName,
+        })
+      );
     }
   } else {
     const mapping = mergeChildMappings(prevChildren, newChildren);
@@ -206,26 +195,38 @@ function useTransitionChildren(
       if (isOld && !isNew) {
         // deleted item
         const onAfterLeaveProp = getProp(prevChildren[key], "onAfterLeave");
-        result[key] = React.cloneElement(prevChildren[key], {
-          visible: false,
-          onAfterLeave: onAfterLeaveProp
-            ? combine(onAfterLeaveProp, forceRerender)
-            : forceRerender,
-        });
+        result.push(
+          cloneElement(prevChildren[key], {
+            visible: false,
+            onAfterLeave: onAfterLeaveProp
+              ? combine(onAfterLeaveProp, forceRerender)
+              : forceRerender,
+            name: getProp(prevChildren[key], "name", name),
+          })
+        );
       } else if (isNew) {
         // new item
-        result[key] = React.cloneElement(newChildren[key], {
-          key,
-          visible: true,
-          // TODO could mounted be `false` here?
-          appear: true, //getProp(newChildren[key], "appear", appear) && !mounted,
-        });
+        result.push(
+          cloneElement(newChildren[key], {
+            key,
+            visible: true,
+            // passing appear true, because without it
+            // we won't get enter transition
+            // TODO think about the situation where
+            // it could lead to bugs
+            appear: true,
+            name: getProp(newChildren[key], "name", name),
+          })
+        );
       } else {
         // old item
-        result[key] = React.cloneElement(newChildren[key], {
-          key,
-          visible: true,
-        });
+        result.push(
+          cloneElement(newChildren[key], {
+            key,
+            visible: true,
+            name: getProp(newChildren[key], "name", name),
+          })
+        );
       }
     }
   }
@@ -243,7 +244,6 @@ function recordNewPosition(el: Element) {
 function applyTranslation(c: Element) {
   const oldPos = positionMap.get(c);
   const newPos = newPositionMap.get(c);
-  console.log(oldPos, newPos);
   if (!oldPos || !newPos) return;
   const dx = oldPos.left - newPos.left;
   const dy = oldPos.top - newPos.top;

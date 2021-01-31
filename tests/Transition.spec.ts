@@ -399,6 +399,50 @@ describe("Transition", () => {
     expect(await classList("#transition-element")).toEqual([]);
   });
 
+  it("customAppear", async () => {
+    const appearClasses = await render({
+      visible: true,
+      name: "test",
+      appear: true,
+      customAppear: true,
+    });
+
+    // appear
+    expect(appearClasses).toEqual(["test-appear-from", "test-appear-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-appear-active",
+      "test-appear-to",
+    ]);
+    await transitionFinish();
+    expect(await classList("#transition-element")).toEqual([]);
+
+    // leave
+    const leaveClasses = await render({ visible: false });
+    expect(leaveClasses).toEqual(["test-leave-from", "test-leave-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(await html("#container")).toBe("");
+
+    // enter
+    const enterClasses = await render({ visible: true });
+    expect(enterClasses).toEqual(["test-enter-from", "test-enter-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(await classList("#transition-element")).toEqual([]);
+  });
+
+  it.skip("customAppear no appear is passed", async () => {});
+  it.skip("customAppear transition events", async () => {});
+
   it("no transition detected", async () => {
     await render({
       visible: false,

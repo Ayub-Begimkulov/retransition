@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { useReducer } from "react";
 import { Transition, TransitionGroup } from "../src";
 
 import "./index.scss";
@@ -125,7 +126,7 @@ const NumbersList = () => {
 };
 
 const makeArr = () => {
-  return Array(81)
+  return Array(81 * 9)
     .fill(null)
     .map((_, index) => ({
       id: "$" + index,
@@ -135,12 +136,19 @@ const makeArr = () => {
 
 const Sudoku = () => {
   const [numbers, setNumbers] = useState(() => makeArr());
-
+  const [, forceRerender] = useReducer(x => x + 1, 0);
+  const ref = useRef(0);
+  (window as any).forcerRerender = forceRerender;
   return (
     <>
       <button onClick={() => setNumbers(v => shuffle(v))}>shuffle</button>{" "}
       <div className="container">
-        <TransitionGroup name="cell">
+        <TransitionGroup
+          name="cell"
+          // TODO component updates if unrelated props are provided
+          // @ts-ignore
+          asdf={ref.current++}
+        >
           {numbers.map(({ id, number }) => (
             <Transition key={id}>
               <div className="cell">{number}</div>
