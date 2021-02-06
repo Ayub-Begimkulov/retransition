@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useReducer } from "react";
 import { Transition, TransitionGroup } from "../src";
 
@@ -24,20 +24,28 @@ function shuffle(array: any[]) {
 const App = () => {
   return (
     <div>
-      <div style={{ height: 300 }}>
-        <h2>CSS transition</h2>
-        <Basic />
-      </div>
-      <div style={{ height: 300 }}>
-        <h2>CSS animation</h2>
-        <BasicAnimation />
-      </div>
+      {false && (
+        <>
+          <div style={{ height: 300 }}>
+            <h2>CSS transition</h2>
+            <Basic />
+          </div>
+          <div style={{ height: 300 }}>
+            <h2>CSS animation</h2>
+            <BasicAnimation />
+          </div>
+        </>
+      )}
       <div>
         <h2>Transition Group Move</h2>
         <Sudoku />
       </div>
-      <h2>TransitionGroup (move, add, remove)</h2>
-      <NumbersList />
+      {false && (
+        <>
+          <h2>TransitionGroup (move, add, remove)</h2>
+          <NumbersList />
+        </>
+      )}
     </div>
   );
 };
@@ -135,10 +143,10 @@ const makeArr = () => {
 };
 
 const Sudoku = () => {
-  const [numbers, setNumbers] = useState(() => makeArr());
   const [, forceRerender] = useReducer(x => x + 1, 0);
-  const ref = useRef(0);
-  (window as any).forcerRerender = forceRerender;
+  (window as any).forceRerender = forceRerender;
+  const [numbers, setNumbers] = useState(() => makeArr());
+
   return (
     <>
       <button onClick={() => setNumbers(v => shuffle(v))}>shuffle</button>{" "}
@@ -146,8 +154,7 @@ const Sudoku = () => {
         <TransitionGroup
           name="cell"
           // TODO component updates if unrelated props are provided
-          // @ts-ignore
-          asdf={ref.current++}
+          // asdf={ref.current++}
         >
           {numbers.map(({ id, number }) => (
             <Transition key={id}>

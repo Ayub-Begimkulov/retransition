@@ -121,10 +121,8 @@ function arePropsEqual(
   }
   const prevKeys = Object.keys(prevProps) as (keyof TransitionGroupProps)[];
   const nextKeys = Object.keys(nextProps) as (keyof TransitionGroupProps)[];
-  if (
-    prevKeys.length !== nextKeys.length ||
-    prevKeys.every((k, i) => k !== nextKeys[i])
-  ) {
+
+  if (!areArraysEqual(prevKeys, nextKeys)) {
     return false;
   }
   for (let i = 0, l = prevKeys.length; i < l; i++) {
@@ -137,8 +135,7 @@ function arePropsEqual(
         nextProps[key]
       ) as React.ReactElement[];
       if (
-        prevChildren.length !== nextChildren.length ||
-        !prevChildren.every((c, i) => c.key === nextChildren[i].key)
+        !areArraysEqual(prevChildren, nextChildren, (a, b) => a.key === b.key)
       ) {
         return false;
       }
@@ -149,6 +146,15 @@ function arePropsEqual(
     }
   }
   return true;
+}
+
+const defaultCompare = (a: any, b: any) => a === b;
+
+function areArraysEqual<T>(arr1: T[], arr2: T[], compare = defaultCompare) {
+  return (
+    arr1.length === arr2.length &&
+    arr1.every((item, i) => compare(item, arr2[i]))
+  );
 }
 
 const getProp = (el: React.ReactElement, key: string, defaultValue?: any) => {
