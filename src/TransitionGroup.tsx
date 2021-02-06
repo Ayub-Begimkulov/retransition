@@ -16,7 +16,6 @@ import { getChildMapping, mergeChildMappings } from "./utils/children";
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
-// TODO correct props
 export interface TransitionGroupProps {
   name?: string;
   appear?: boolean;
@@ -60,7 +59,6 @@ const TransitionGroup = memo(
       [isMounted]
     );
 
-    // TODO check performance cost of everything
     useLayoutEffect(() => {
       const updateChildren = () => {
         if (newChildrenElements.current.length > 0) {
@@ -115,40 +113,39 @@ const TransitionGroup = memo(
   arePropsEqual
 );
 
-// TODO run benchmarks and improve performance
 function arePropsEqual(
   prevProps: TransitionGroupProps,
   nextProps: TransitionGroupProps
 ) {
-  if (Object.is(prevProps, nextProps)) {
+  if (prevProps === nextProps) {
     return true;
   }
   const prevKeys = Object.keys(prevProps) as (keyof TransitionGroupProps)[];
   const nextKeys = Object.keys(nextProps) as (keyof TransitionGroupProps)[];
-  if (prevKeys.length !== nextKeys.length) {
-    return false;
-  }
-  if (prevKeys.every((k, i) => k !== nextKeys[i])) {
+  if (
+    prevKeys.length !== nextKeys.length ||
+    prevKeys.every((k, i) => k !== nextKeys[i])
+  ) {
     return false;
   }
   for (let i = 0, l = prevKeys.length; i < l; i++) {
     const key = prevKeys[i];
     if (key === "children") {
       const prevChildren = Children.toArray(
-        prevProps["children"]
+        prevProps[key]
       ) as React.ReactElement[];
       const nextChildren = Children.toArray(
-        nextProps["children"]
+        nextProps[key]
       ) as React.ReactElement[];
-      if (prevChildren.length !== nextChildren.length) {
-        return false;
-      }
-      if (!prevChildren.every((c, i) => c.key === nextChildren[i].key)) {
+      if (
+        prevChildren.length !== nextChildren.length ||
+        !prevChildren.every((c, i) => c.key === nextChildren[i].key)
+      ) {
         return false;
       }
       continue;
     }
-    if (!Object.is(prevProps[key], nextProps[key])) {
+    if (prevProps[key] !== nextProps[key]) {
       return false;
     }
   }

@@ -69,6 +69,7 @@ const Transition = (props: TransitionProps) => {
   const finishEnter = useRef<((cancelled?: boolean) => void) | null>(null);
   const finishLeave = useRef<((cancelled?: boolean) => void) | null>(null);
   const initialDisplay = useRef<string | null>(null);
+
   const performEnter = useCallback(
     (el: Element) => {
       const {
@@ -213,7 +214,7 @@ const Transition = (props: TransitionProps) => {
           performEnter(el);
         }
         // TODO latestProps doesn't have a default values for props
-        if (latestProps.current.unmount === false) {
+        else if (latestProps.current.unmount === false) {
           performEnter(el);
         }
       }
@@ -260,22 +261,19 @@ const Transition = (props: TransitionProps) => {
 
   try {
     child = Children.only(children);
-  } catch (e) {
+  } catch {
     if (process.env.NODE_ENV === "development" || process.env.TESTING) {
-      console.error(
+      throw new Error(
         "[react-transition]: wrong `children` passed to the <Transition> component " +
           "expected to have `ReactElement`, got " +
           typeof children
       );
-      // TODO should we throw original error?
-      throw e;
     }
     return null;
   }
-  const el = cloneElement(child, {
+  return cloneElement(child, {
     ref,
   });
-  return el;
 };
 
 export default Transition;

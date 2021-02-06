@@ -26,9 +26,7 @@ export function once<T extends AnyFunction>(fn: T) {
 
 export function nextFrame(cb: () => void) {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      cb();
-    });
+    requestAnimationFrame(cb);
   });
 }
 
