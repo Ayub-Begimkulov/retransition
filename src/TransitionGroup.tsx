@@ -50,7 +50,6 @@ const TransitionGroup = memo(
           newChildrenElements.current.push(el);
         },
         unregister(el: Element) {
-          // TODO use map/object for performance?
           prevChildrenElements.current = prevChildrenElements.current.filter(
             e => e !== el
           );
