@@ -99,7 +99,7 @@ const Transition = (props: TransitionProps) => {
         return;
       }
       const isAppear =
-        appear && !isMounted.current && (context ? context.isAppear : true);
+        appear && !isMounted.current && (context ? context.isAppearing : true);
       if (finishLeave.current) {
         finishLeave.current(true);
       }

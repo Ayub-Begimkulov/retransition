@@ -1,9 +1,9 @@
-import { Children, ReactElement } from "react";
+import { ReactElement } from "react";
 import { hasOwn } from ".";
 
-export function getChildMapping(children: ReactElement | ReactElement[]) {
+export function getChildMapping(children: ReactElement[]) {
   const result = {} as Record<string, ReactElement>;
-  Children.forEach(children, child => {
+  children.forEach(child => {
     if (!child.key || hasOwn(result, child.key)) {
       if (process.env.NODE_ENV === "development" || process.env.TESTING) {
         throw new Error(

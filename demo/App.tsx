@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useReducer } from "react";
 import { Transition, TransitionGroup } from "../src";
 
 import "./index.scss";
@@ -34,18 +33,14 @@ const App = () => {
             <h2>CSS animation</h2>
             <BasicAnimation />
           </div>
+          <div>
+            <h2>Transition Group Move</h2>
+            <Sudoku />
+          </div>
         </>
       )}
-      <div>
-        <h2>Transition Group Move</h2>
-        <Sudoku />
-      </div>
-      {false && (
-        <>
-          <h2>TransitionGroup (move, add, remove)</h2>
-          <NumbersList />
-        </>
-      )}
+      <h2>TransitionGroup (move, add, remove)</h2>
+      <NumbersList />
     </div>
   );
 };
@@ -134,7 +129,7 @@ const NumbersList = () => {
 };
 
 const makeArr = () => {
-  return Array(81 * 9)
+  return Array(81)
     .fill(null)
     .map((_, index) => ({
       id: "$" + index,
@@ -143,19 +138,13 @@ const makeArr = () => {
 };
 
 const Sudoku = () => {
-  const [, forceRerender] = useReducer(x => x + 1, 0);
-  (window as any).forceRerender = forceRerender;
   const [numbers, setNumbers] = useState(() => makeArr());
 
   return (
     <>
       <button onClick={() => setNumbers(v => shuffle(v))}>shuffle</button>{" "}
       <div className="container">
-        <TransitionGroup
-          name="cell"
-          // TODO component updates if unrelated props are provided
-          // asdf={ref.current++}
-        >
+        <TransitionGroup name="cell">
           {numbers.map(({ id, number }) => (
             <Transition key={id}>
               <div className="cell">{number}</div>

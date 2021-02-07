@@ -1,7 +1,7 @@
 import { createContext } from "react";
 
 export interface ContextProps {
-  readonly isAppear: boolean;
+  readonly isAppearing: boolean;
   register: (el: Element) => void;
   unregister: (el: Element) => void;
 }

@@ -4,13 +4,12 @@ import React, {
   memo,
   useLayoutEffect,
   useMemo,
-  useReducer,
   useRef,
 } from "react";
 import { TransitionGroupContext } from "./context";
-import { useHasChanged, useIsMounted, usePrevious } from "./hooks";
+import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
-import { addClass, combine, hasOwn, removeClass } from "./utils";
+import { addClass, hasOwn, removeClass } from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -25,25 +24,67 @@ export interface TransitionGroupProps {
     | React.ReactElement<TransitionProps>[];
 }
 
-const TransitionGroup = memo(
-  ({ name, appear, moveClass, children }: TransitionGroupProps) => {
+interface TransitionGroupMemoProps
+  extends Omit<TransitionGroupProps, "children"> {
+  childrenRef: React.MutableRefObject<React.ReactElement[]>;
+  runEffect: number;
+}
+
+const TransitionGroup = ({
+  children,
+  name,
+  appear,
+  moveClass,
+}: TransitionGroupProps) => {
+  const childrenArray = Children.toArray(children) as React.ReactElement[];
+  const childrenRef = useLatest(childrenArray);
+  const prevChildren = usePrevious(childrenArray);
+  const shouldRunLayoutEffect = useRef(0);
+
+  if (
+    !prevChildren.current ||
+    !areChildrenEqual(childrenArray, prevChildren.current)
+  ) {
+    shouldRunLayoutEffect.current++;
+  }
+
+  return (
+    <TransitionGroupMemo
+      name={name}
+      appear={appear}
+      moveClass={moveClass}
+      childrenRef={childrenRef}
+      runEffect={shouldRunLayoutEffect.current}
+    />
+  );
+};
+
+const TransitionGroupMemo = memo(
+  ({
+    name,
+    appear,
+    moveClass,
+    childrenRef,
+    runEffect,
+  }: TransitionGroupMemoProps) => {
+    const prevRunEffect = usePrevious(runEffect);
     const isMounted = useIsMounted();
     // TODO test if it's useful to have
     // `newChildrenElements` array
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
-    const childrenChanged = useHasChanged(children);
-    // TODO can you pass info from memo compare function
-    // so we don't need to check for children difference
-    if (childrenChanged && prevChildrenElements.current.length > 0) {
+    if (
+      prevRunEffect.current !== runEffect &&
+      prevChildrenElements.current.length > 0
+    ) {
       prevChildrenElements.current.forEach(recordPosition);
     }
 
     const ctxValue = useMemo(
       () => ({
         // TODO rename getter
-        get isAppear() {
+        get isAppearing() {
           return !isMounted.current;
         },
         register(el: Element) {
@@ -99,76 +140,49 @@ const TransitionGroup = memo(
         child.addEventListener("transitionend", endCb);
       });
       updateChildren();
-    }, [children, moveClass, name, isMounted]);
+    }, [
+      runEffect,
+      // TODO move class and name should not cause update
+      // only the change of the children array
+      moveClass,
+      name,
+      isMounted,
+    ]);
 
-    const childrenToRender = useTransitionChildren(children, appear, name);
+    const childrenToRender = /*#__NOINLINE__*/ useTransitionChildren(
+      childrenRef.current,
+      appear,
+      name
+    );
 
     return (
       <TransitionGroupContext.Provider value={ctxValue}>
         {childrenToRender}
       </TransitionGroupContext.Provider>
     );
-  },
-  arePropsEqual
+  }
 );
 
-function arePropsEqual(
-  prevProps: TransitionGroupProps,
-  nextProps: TransitionGroupProps
+function areChildrenEqual(
+  arr1: React.ReactElement[],
+  arr2: React.ReactElement[]
 ) {
-  if (prevProps === nextProps) {
-    return true;
-  }
-  const prevKeys = Object.keys(prevProps) as (keyof TransitionGroupProps)[];
-  const nextKeys = Object.keys(nextProps) as (keyof TransitionGroupProps)[];
-
-  if (!areArraysEqual(prevKeys, nextKeys)) {
-    return false;
-  }
-  for (let i = 0, l = prevKeys.length; i < l; i++) {
-    const key = prevKeys[i];
-    if (key === "children") {
-      const prevChildren = Children.toArray(
-        prevProps[key]
-      ) as React.ReactElement[];
-      const nextChildren = Children.toArray(
-        nextProps[key]
-      ) as React.ReactElement[];
-      if (
-        !areArraysEqual(prevChildren, nextChildren, (a, b) => a.key === b.key)
-      ) {
-        return false;
-      }
-      continue;
-    }
-    if (prevProps[key] !== nextProps[key]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-const defaultCompare = (a: any, b: any) => a === b;
-
-function areArraysEqual<T>(arr1: T[], arr2: T[], compare = defaultCompare) {
   return (
     arr1.length === arr2.length &&
-    arr1.every((item, i) => compare(item, arr2[i]))
+    arr1.every((item, i) => item.key === arr2[i].key)
   );
 }
 
-const getProp = (el: React.ReactElement, key: string, defaultValue?: any) => {
+function getProp(el: React.ReactElement, key: string, defaultValue?: any) {
   if (!hasOwn(el.props, key)) return defaultValue;
   return el.props[key];
-};
+}
 
 function useTransitionChildren(
-  children: React.ReactElement | React.ReactElement[],
+  children: React.ReactElement[],
   appear: boolean | undefined,
   name?: string
 ) {
-  // TODO think about different way to update children
-  const [, forceRerender] = useReducer(x => x + 1, 0);
   const currentChildren = getChildMapping(children);
   const prevChildrenMapping = usePrevious(currentChildren);
 
@@ -200,9 +214,7 @@ function useTransitionChildren(
         result.push(
           cloneElement(prevChildren[key], {
             visible: false,
-            onAfterLeave: onAfterLeaveProp
-              ? combine(onAfterLeaveProp, forceRerender)
-              : forceRerender,
+            onAfterLeave: onAfterLeaveProp,
             name: getProp(prevChildren[key], "name", name),
           })
         );
