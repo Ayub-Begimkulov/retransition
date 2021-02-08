@@ -42,8 +42,9 @@ export function removeClass(el: Element, ...classes: string[]) {
   );
 }
 
-export function combine(...fns: AnyFunction[]) {
-  return (...args: any[]) => {
-    fns.forEach(f => f(...args));
+export function combine(...args: unknown[]) {
+  const fns = args.filter(isFunction);
+  return (arg: unknown) => {
+    fns.forEach(f => f(arg));
   };
 }

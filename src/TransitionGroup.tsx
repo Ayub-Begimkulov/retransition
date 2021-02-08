@@ -9,7 +9,7 @@ import React, {
 import { TransitionGroupContext } from "./context";
 import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
-import { addClass, hasOwn, removeClass } from "./utils";
+import { addClass, combine, hasOwn, removeClass } from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -69,8 +69,8 @@ const TransitionGroupMemo = memo(
   }: TransitionGroupMemoProps) => {
     const prevRunEffect = usePrevious(runEffect);
     const isMounted = useIsMounted();
-    // TODO test if it's useful to have
-    // `newChildrenElements` array
+
+    // TODO does having `newChildrenElements` is useful?
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
@@ -83,7 +83,6 @@ const TransitionGroupMemo = memo(
 
     const ctxValue = useMemo(
       () => ({
-        // TODO rename getter
         get isAppearing() {
           return !isMounted.current;
         },
@@ -184,7 +183,9 @@ function useTransitionChildren(
   name?: string
 ) {
   const currentChildren = getChildMapping(children);
-  const prevChildrenMapping = usePrevious(currentChildren);
+  const prevChildrenMapping = useRef<Record<string, React.ReactElement> | null>(
+    null
+  );
 
   const newChildren = currentChildren;
   const prevChildren = prevChildrenMapping.current;
@@ -203,8 +204,12 @@ function useTransitionChildren(
         })
       );
     }
+    prevChildrenMapping.current = newChildren;
   } else {
-    const mapping = mergeChildMappings(prevChildren, newChildren);
+    const mapping = (prevChildrenMapping.current = mergeChildMappings(
+      prevChildren,
+      newChildren
+    ));
     for (const key in mapping) {
       const isOld = hasOwn(prevChildren, key);
       const isNew = hasOwn(newChildren, key);
@@ -214,7 +219,12 @@ function useTransitionChildren(
         result.push(
           cloneElement(prevChildren[key], {
             visible: false,
-            onAfterLeave: onAfterLeaveProp,
+            onAfterLeave: combine(
+              onAfterLeaveProp,
+              () =>
+                prevChildrenMapping.current &&
+                delete prevChildrenMapping.current[key]
+            ),
             name: getProp(prevChildren[key], "name", name),
           })
         );
