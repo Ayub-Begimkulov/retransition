@@ -13,6 +13,7 @@ export default {
     isTesting && istanbul(),
     replace({
       "process.env.NODE_ENV": JSON.stringify("production"),
+      "process.env.TESTING": JSON.stringify(isTesting),
     }),
     sizeSnapshot(),
     terser(),

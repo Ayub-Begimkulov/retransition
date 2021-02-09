@@ -1,3 +1,4 @@
+const webpack = require("webpack");
 const path = require("path");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
 
@@ -22,6 +23,9 @@ module.exports = {
     modules: ["node_modules", "./src"],
   },
   plugins: [
+    new webpack.DefinePlugin({
+      "process.env.TESTING": JSON.stringify(true),
+    }),
     new HTMLWebpackPlugin({
       template: path.resolve(__dirname, "index.html"),
     }),

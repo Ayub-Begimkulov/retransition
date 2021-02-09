@@ -26,9 +26,7 @@ export function once<T extends AnyFunction>(fn: T) {
 
 export function nextFrame(cb: () => void) {
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      cb();
-    });
+    requestAnimationFrame(cb);
   });
 }
 
@@ -44,21 +42,9 @@ export function removeClass(el: Element, ...classes: string[]) {
   );
 }
 
-export function mapObject<T extends AnyObject, V>(
-  obj: T,
-  mapper: (value: T[keyof T], key: keyof T, originalObj: T) => V
-) {
-  const result: V[] = [];
-  for (const key in obj) {
-    if (hasOwn(obj, key)) {
-      result.push(mapper(obj[key], key, obj));
-    }
-  }
-  return result;
-}
-
-export function combine(...fns: AnyFunction[]) {
-  return (...args: any[]) => {
-    fns.forEach(f => f(...args));
+export function combine(...args: unknown[]) {
+  const fns = args.filter(isFunction);
+  return (arg: unknown) => {
+    fns.forEach(f => f(arg));
   };
 }

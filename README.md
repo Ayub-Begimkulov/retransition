@@ -300,9 +300,10 @@ const App = () => {
 <!-- prettier-ignore -->
 | name  | type | default | description|
 | --- | --- | --- | --- | 
-| visible           | `boolean`                 | `false`                       | Determents wether to show component or nor, trigger transition on change |
+| visible           | `boolean`                 | `false`                       | Determines wether to show component or nor, trigger transition on change |
 | name              | `string`                  | `transition`                  | The name of the transition, used to generate a default transition classes |
-| appear            | `boolean`                 | `false`                       | DBy default enter transition is not performed on initial render, if you want this behavior set `appear` and `visible` to `true` |
+| appear            | `boolean`                 | `false`                       | By default enter transition is not performed on initial render, if you want this behavior set `appear` and `visible` to `true` |
+| customAppear      | `boolean`                 | `false`                       | By default appear transition uses enter classes and events. But if you want it to generate custom classes and not use enter events, pass `true` |
 | nodeRef           | `React.MutableRef<Element \| null> \| ((node: Element) => void` | `undefined` | `<Transition />` component passes `ref` to it's children. So if you also want to use `ref` pass it to the wrapping `<Transition />` component |
 | unmount           | `boolean`                 | `true`                        | By default the child is unmounted on exit. If you prefer no unmounting (hided with `display: none`) change this to `false`. |
 | type              | `'animation' \| 'transition' \| undefined` | `undefined` | TODO |
@@ -312,9 +313,9 @@ const App = () => {
 | leaveFromClass    | `string`                  | `` `${name}-leave-from` ``    | Class that sets the starting styles of leave transition.                                                                                                   |
 | leaveActiveClass  | `string`                  | `` `${name}-leave-active` ``  | Class that sets the active style of leave transition. This class can be used to define the duration, delay and easing curve for the leaving transition.    |
 | leaveToClass      | `string`                  | `` `${name}-leave-to` ``      | Class that sets the ending styles of leave transition.                                                                                                     |
-| appearFromClass   | `string`                  | `` `${name}-appear-from` ``   | Class that sets the starting styles of appear transition.                                                                                                  |             |
-| appearActiveClass | `string`                  | `` `${name}-appear-active` `` | Class that sets the active style of appear transition. This class can be used to define the duration, delay and easing curve for the appearing transition. |
-| appearToClass     | `string`                  | `` `${name}-appear-to` ``     | Class that sets the ending styles of appear transition.                                                                                                    |
+| appearFromClass   | `string`                  | `` `enterFromClass` ``   | Class that sets the starting styles of appear transition. By default `enterFromClass` is used. To change this behavior pass `customAppear` prop. |             
+| appearActiveClass | `string`                  | `` `enterActiveClass` `` | Class that sets the active style of appear transition. This class can be used to define the duration, delay and easing curve for the appearing transition. |
+| appearToClass     | `string`                  | `` `enterToClass` ``     | Class that sets the ending styles of appear transition. |
 
 ### TransitionGroup
 

@@ -1,5 +1,6 @@
 const path = require("path");
 const HTMLWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -36,10 +37,15 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".jsx"],
     modules: ["node_modules", "./src"],
+    alias: {
+      "react-dom$": "react-dom/profiling",
+      "scheduler/tracing": "scheduler/tracing-profiling",
+    },
   },
   plugins: [
     new HTMLWebpackPlugin({
       template: path.resolve(__dirname, "index.html"),
     }),
-  ],
+    !__DEV__ && new CleanWebpackPlugin(),
+  ].filter(Boolean),
 };

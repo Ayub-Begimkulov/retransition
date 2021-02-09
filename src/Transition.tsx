@@ -1,4 +1,6 @@
 import React, {
+  Children,
+  cloneElement,
   useCallback,
   useContext,
   useLayoutEffect,
@@ -22,6 +24,7 @@ export interface TransitionProps {
   name?: string;
   type?: CSSTransitionType;
   appear?: boolean;
+  customAppear?: boolean;
   unmount?: boolean;
   nodeRef?:
     | React.MutableRefObject<Element | null>
@@ -38,15 +41,15 @@ export interface TransitionProps {
   onBeforeEnter?: (el: Element) => void;
   onEnter?: (el: Element /* , done: () => void */) => void;
   onAfterEnter?: (el: Element) => void;
-  // onEnterCancelled?: (el: Element) => void;
+  onEnterCancelled?: (el: Element) => void;
   onBeforeLeave?: (el: Element) => void;
   onLeave?: (el: Element /* , done: () => void */) => void;
   onAfterLeave?: (el: Element) => void;
-  // onLeaveCancelled?: (el: Element) => void;
+  onLeaveCancelled?: (el: Element) => void;
   onBeforeAppear?: (el: Element) => void;
   onAppear?: (el: Element /* , done: () => void */) => void;
   onAfterAppear?: (el: Element) => void;
-  // onAppearCancelled?: (el: Element) => void;
+  onAppearCancelled?: (el: Element) => void;
   children: React.ReactElement;
 }
 
@@ -63,8 +66,8 @@ const Transition = (props: TransitionProps) => {
 
   const elRef = useRef<Element | null>(null);
   const isMounted = useIsMounted();
-  const finishEnter = useRef<(() => void) | null>(null);
-  const finishLeave = useRef<(() => void) | null>(null);
+  const finishEnter = useRef<((cancelled?: boolean) => void) | null>(null);
+  const finishLeave = useRef<((cancelled?: boolean) => void) | null>(null);
   const initialDisplay = useRef<string | null>(null);
 
   const performEnter = useCallback(
@@ -73,32 +76,38 @@ const Transition = (props: TransitionProps) => {
         type,
         appear = false,
         unmount = true,
+        customAppear = false,
         name = "transition",
         enterFromClass = `${name}-enter-from`,
         enterActiveClass = `${name}-enter-active`,
         enterToClass = `${name}-enter-to`,
-        appearFromClass = enterFromClass,
-        appearActiveClass = enterActiveClass,
-        appearToClass = enterToClass,
+        appearFromClass = customAppear ? `${name}-appear-from` : enterFromClass,
+        appearActiveClass = customAppear
+          ? `${name}-appear-active`
+          : enterActiveClass,
+        appearToClass = customAppear ? `${name}-appear-to` : enterToClass,
         onBeforeEnter,
         onEnter,
         onAfterEnter,
-        onBeforeAppear = onBeforeEnter,
-        onAppear = onEnter,
-        onAfterAppear = onAfterEnter,
+        onEnterCancelled,
+        onBeforeAppear = customAppear ? undefined : onBeforeEnter,
+        onAppear = customAppear ? undefined : onEnter,
+        onAfterAppear = customAppear ? undefined : onAfterEnter,
+        onAppearCancelled = customAppear ? undefined : onEnterCancelled,
       } = latestProps.current;
       if (!appear && !isMounted.current) {
         return;
       }
-      if (finishLeave.current) {
-        finishLeave.current();
-      }
       const isAppear =
-        appear && !isMounted.current && (context ? context.isAppear : true);
+        appear && !isMounted.current && (context ? context.isAppearing : true);
+      if (finishLeave.current) {
+        finishLeave.current(true);
+      }
       const [
         beforeHook,
         hook,
         afterHook,
+        cancelHook,
         fromClass,
         activeClass,
         toClass,
@@ -107,6 +116,7 @@ const Transition = (props: TransitionProps) => {
             onBeforeAppear,
             onAppear,
             onAfterAppear,
+            onAppearCancelled,
             appearFromClass,
             appearActiveClass,
             appearToClass,
@@ -115,6 +125,7 @@ const Transition = (props: TransitionProps) => {
             onBeforeEnter,
             onEnter,
             onAfterEnter,
+            onEnterCancelled,
             enterFromClass,
             enterActiveClass,
             enterToClass,
@@ -129,9 +140,10 @@ const Transition = (props: TransitionProps) => {
       nextFrame(() => {
         removeClass(el, fromClass);
         addClass(el, toClass);
-        const onEnd = (finishEnter.current = once(() => {
+        const onEnd = (finishEnter.current = once((cancelled?: boolean) => {
           removeClass(el, toClass, activeClass);
-          afterHook && afterHook(el);
+          const finishHook = cancelled ? cancelHook : afterHook;
+          finishHook && finishHook(el);
           finishEnter.current = null;
         }));
         whenTransitionEnds(el, onEnd, type);
@@ -143,7 +155,7 @@ const Transition = (props: TransitionProps) => {
   const performLeave = useCallback(
     (el: Element) => {
       if (finishEnter.current) {
-        finishEnter.current();
+        finishEnter.current(true);
       }
       const {
         type,
@@ -155,6 +167,7 @@ const Transition = (props: TransitionProps) => {
         onBeforeLeave,
         onLeave,
         onAfterLeave,
+        onLeaveCancelled,
       } = latestProps.current;
       onBeforeLeave && onBeforeLeave(el);
       addClass(el, leaveFromClass);
@@ -163,19 +176,20 @@ const Transition = (props: TransitionProps) => {
       nextFrame(() => {
         removeClass(el, leaveFromClass);
         addClass(el, leaveToClass);
-        const onEnd = (finishLeave.current = once(() => {
+        const onEnd = (finishLeave.current = once((cancelled?: boolean) => {
           removeClass(el, leaveToClass);
           removeClass(el, leaveActiveClass);
           if (isMounted.current) {
-            context?.unregister(el);
             setLocalVisible(false);
-            if (!unmount) {
-              const s = (el as HTMLElement).style;
-              initialDisplay.current = s.display;
-              s.display = "none";
-            }
           }
-          onAfterLeave && onAfterLeave(el);
+          context?.unregister(el);
+          if (!unmount) {
+            const s = (el as HTMLElement).style;
+            initialDisplay.current = s.display;
+            s.display = "none";
+          }
+          const finishHook = cancelled ? onLeaveCancelled : onAfterLeave;
+          finishHook && finishHook(el);
           finishLeave.current = null;
         }));
         whenTransitionEnds(el, onEnd, type);
@@ -185,35 +199,36 @@ const Transition = (props: TransitionProps) => {
   );
 
   useLayoutEffect(() => {
+    const el = elRef.current;
     if (visible) {
-      // if component is mounted and `previousVisible.current` not
-      // equal to `localVisible` prop then it means
-      // that leave animation was cancelled and we
-      // should perform enter ourself because ref callback
-      // won't be called since element isn't unmounted.
-      if (
-        isMounted.current &&
-        previousVisible.current !== localVisibleRef.current
-      ) {
-        elRef.current && performEnter(elRef.current);
-      }
-      // TODO add comment for this shit
-      // TODO fix === false
-      // latestProps doesn't have a default values for props
-      if (latestProps.current.unmount === false) {
-        elRef.current && performEnter(elRef.current);
+      if (el) {
+        // if component is mounted and `previousVisible.current` not
+        // equal to `localVisible` prop then it means
+        // that leave animation was cancelled and we
+        // should perform enter ourself because ref callback
+        // won't be called since element isn't unmounted.
+        if (
+          isMounted.current &&
+          previousVisible.current !== localVisibleRef.current
+        ) {
+          performEnter(el);
+        }
+        // TODO latestProps doesn't have a default values for props
+        else if (latestProps.current.unmount === false) {
+          performEnter(el);
+        }
       }
       setLocalVisible(true);
-    } else if (elRef.current) {
+    } else if (el) {
       if (!isMounted.current) {
         if (latestProps.current.unmount === false) {
-          initialDisplay.current = (elRef.current as HTMLElement).style.display;
-          (elRef.current as HTMLElement).style.display = "none";
+          initialDisplay.current = (el as HTMLElement).style.display;
+          (el as HTMLElement).style.display = "none";
         }
         // do not run `performLeave` on initial render
         return;
       }
-      performLeave(elRef.current);
+      performLeave(el);
     }
   }, [
     visible,
@@ -242,12 +257,23 @@ const Transition = (props: TransitionProps) => {
 
   if (unmount && !localVisible) return null;
 
-  // TODO add error handling and warning if multiple children
-  const child = React.Children.only(children);
-  const el = React.cloneElement(child, {
+  let child: React.ReactElement;
+
+  try {
+    child = Children.only(children);
+  } catch {
+    if (process.env.NODE_ENV === "development" || process.env.TESTING) {
+      throw new Error(
+        "[react-transition]: wrong `children` passed to the <Transition> component " +
+          "expected to have `ReactElement`, got " +
+          typeof children
+      );
+    }
+    return null;
+  }
+  return cloneElement(child, {
     ref,
   });
-  return el;
 };
 
 export default Transition;
