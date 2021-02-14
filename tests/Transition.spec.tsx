@@ -1,18 +1,43 @@
+import fs from "fs";
 import path from "path";
-import { TransitionProps } from "../src/Transition";
-import { AnyFunction, AnyObject } from "../src/types";
-import { setupPuppeteer } from "./test-utils";
+import { CoverageMap, createCoverageMap } from "istanbul-lib-coverage";
+import { setupPlaywright } from "./test-utils";
 
-export function omitBy<T extends AnyObject>(
-  obj: T,
-  predicate: (val: T[keyof T], key: keyof T) => boolean
-) {
-  return Object.keys(obj).reduce((acc, c: keyof T) => {
-    if (predicate(obj[c], c)) {
-      acc[c] = obj[c];
+declare const React: typeof global.React;
+
+let coverageMap: CoverageMap;
+if (!(coverageMap = (global as any).coverageMap)) {
+  beforeAll(() => {
+    let coverage: any;
+    try {
+      coverage = fs.readFileSync(
+        path.resolve(__dirname, "..", "coverage", "coverage.json"),
+        { encoding: "utf-8" }
+      );
+      if (coverage) {
+        coverage = JSON.parse(coverage);
+      }
+    } catch (e) {
+      coverage = {};
     }
-    return acc;
-  }, {} as T);
+    coverageMap = createCoverageMap(coverage);
+    (global as any).coverageMap = coverageMap;
+  });
+
+  afterAll(() => {
+    try {
+      const outputFolder = path.resolve(__dirname, "..", "coverage");
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder);
+      }
+      fs.writeFileSync(
+        path.resolve(outputFolder, "coverage.json"),
+        JSON.stringify(coverageMap)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  });
 }
 
 describe("Transition", () => {
@@ -23,57 +48,41 @@ describe("Transition", () => {
     html,
     classList,
     isVisible,
-  } = setupPuppeteer();
-  const baseUrl = `file://${path.resolve(__dirname, "dist", "index.html")}`;
+    makeRender,
+  } = setupPlaywright();
+  const baseUrl = `file://${path.resolve(__dirname, "transition.html")}`;
 
   const duration = 50;
   const buffer = 5;
 
   const transitionFinish = (time = duration) => timeout(time + buffer);
 
-  const render = async (props: Partial<TransitionProps> = {}) => {
-    const keys = Object.keys(props) as (keyof typeof props)[];
-
-    await Promise.all(
-      keys
-        .filter(v => typeof props[v] === "function")
-        .map(key => page().exposeFunction(key, props[key] as AnyFunction))
-    );
-    const rest = omitBy(props, v => v !== "function");
-    return page().evaluate(
-      function (this: any, props, keys: string[]) {
-        const resultProps = {} as any;
-        keys.forEach(key => {
-          if (props[key] !== undefined) {
-            resultProps[key] = props[key];
-          } else {
-            resultProps[key] = () => this[key]();
-          }
-        });
-        return new Promise(res =>
-          this.render(resultProps, () => {
-            Promise.resolve().then(() => {
-              res(
-                document
-                  .querySelector("#transition-element")
-                  ?.className.split(/\s+/g)
-              );
-            });
-          })
-        );
-      },
-      rest as any,
-      keys
-    );
-  };
+  const render = makeRender(
+    props => {
+      const { Transition } = (window as any).ReactTransition;
+      return (
+        <div id="container">
+          <Transition {...props}>
+            <div id="transition-element"></div>
+          </Transition>
+        </div>
+      );
+    },
+    res =>
+      Promise.resolve().then(() => {
+        const el = document.querySelector("#transition-element");
+        const classes = el && el.className.split(/\s+/g);
+        res(classes);
+      })
+  );
 
   beforeEach(async () => {
     await page().goto(baseUrl);
-    await page().waitForSelector("#app");
+    await page().waitForSelector("#app", { state: "attached" });
   });
 
   it("basic transition", async () => {
-    await render();
+    await render({});
     // enter
     const enterClasses = await render({ visible: true });
     expect(enterClasses).toEqual([
@@ -104,7 +113,7 @@ describe("Transition", () => {
   });
 
   it("named transition", async () => {
-    await render();
+    await render({});
     // enter
     const enterClasses = await render({ visible: true, name: "test" });
     expect(enterClasses).toEqual(["test-enter-from", "test-enter-active"]);
@@ -597,7 +606,7 @@ describe("Transition", () => {
   });
 
   it("animation", async () => {
-    await render();
+    await render({});
     // enter
     const enterClasses = await render({ visible: true, name: "anim" });
     expect(enterClasses).toEqual(["anim-enter-from", "anim-enter-active"]);
@@ -719,6 +728,26 @@ describe("Transition", () => {
     ]);
     await transitionFinish();
     expect(await html("#container")).toBe("");
+  });
+
+  it("warn if wrong children", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error");
+
+    await page().evaluate(() => {
+      return new Promise(res => {
+        const { React, ReactDOM, ReactTransition } = window as any;
+        const { Transition } = ReactTransition;
+        const baseElement = document.querySelector("#app")!;
+
+        ReactDOM.render(
+          <Transition visible={true}></Transition>,
+          baseElement,
+          res
+        );
+      });
+    });
+
+    expect(consoleErrorSpy).toBeCalled();
   });
 
   it.todo(

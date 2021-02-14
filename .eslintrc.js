@@ -24,5 +24,6 @@ module.exports = {
     "react/prop-types": "off",
     "prefer-spread": "off",
     "no-console": "error",
+    "react/display-name": "off",
   },
 };

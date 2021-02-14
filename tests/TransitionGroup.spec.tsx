@@ -1,77 +1,126 @@
 import path from "path";
-import { TransitionGroupProps } from "../src/TransitionGroup";
-import { AnyFunction, AnyObject } from "../src/types";
-import { setupPuppeteer } from "./test-utils";
+import { setupPlaywright } from "./test-utils";
+import { createCoverageMap, CoverageMap } from "istanbul-lib-coverage";
+import fs from "fs";
 
-function omitBy<T extends AnyObject>(
-  obj: T,
-  predicate: (val: T[keyof T], key: keyof T) => boolean
-) {
-  return Object.keys(obj).reduce((acc, c: keyof T) => {
-    if (predicate(obj[c], c)) {
-      acc[c] = obj[c];
+declare const React: typeof global.React;
+
+let coverageMap: CoverageMap;
+if (!(coverageMap = (global as any).coverageMap)) {
+  beforeAll(() => {
+    let coverage: any;
+    try {
+      coverage = fs.readFileSync(
+        path.resolve(__dirname, "..", "coverage", "coverage.json"),
+        { encoding: "utf-8" }
+      );
+      if (coverage) {
+        coverage = JSON.parse(coverage);
+      }
+    } catch (e) {
+      coverage = {};
     }
-    return acc;
-  }, {} as T);
+    coverageMap = createCoverageMap(coverage);
+    (global as any).coverageMap = coverageMap;
+  });
+
+  afterAll(() => {
+    try {
+      const outputFolder = path.resolve(__dirname, "..", "coverage");
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder);
+      }
+      fs.writeFileSync(
+        path.resolve(outputFolder, "coverage.json"),
+        JSON.stringify(coverageMap)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  });
 }
 
 describe("TransitionGroup", () => {
-  const { page, timeout, html, nextFrame } = setupPuppeteer();
-  const baseUrl = `file://${path.resolve(__dirname, "dist2", "index.html")}`;
+  const { page, nextFrame, html, timeout, makeRender } = setupPlaywright();
+  const baseUrl = `file://${path.resolve(__dirname, "transition.html")}`;
 
   const duration = 50;
   const buffer = 5;
 
   const transitionFinish = (time = duration) => timeout(time + buffer);
 
-  const render = async (
-    props: Partial<TransitionGroupProps> & AnyObject = {}
-  ) => {
-    const keys = Object.keys(props) as (keyof typeof props)[];
-
-    await Promise.all(
-      keys
-        .filter(v => typeof props[v] === "function")
-        .map(key => page().exposeFunction(key, props[key] as AnyFunction))
-    );
-    const rest = omitBy(props, v => v !== "function");
-    return page().evaluate(
-      function (this: any, props, keys: string[]) {
-        const resultProps = {} as any;
-        keys.forEach(key => {
-          if (props[key] !== undefined) {
-            resultProps[key] = props[key];
-          } else {
-            resultProps[key] = () => this[key]();
-          }
-        });
-        return new Promise(res => {
-          this.render(resultProps, () => {
-            Promise.resolve().then(() => {
-              res(document.querySelector("#container")?.innerHTML);
-            });
-          });
-        });
-      },
-      rest as any,
-      keys
-    );
-  };
-
   beforeEach(async () => {
     await page().goto(baseUrl);
-    await page().waitForSelector("#app");
+    await page().waitForSelector("#app", { state: "attached" });
   });
 
+  afterEach(async () => {
+    const coverage = await page().evaluate(() => (window as any).__coverage__);
+    coverageMap.merge(coverage);
+  });
+
+  /* The test is no longer relevant since we use Children.toArray
+    and it creates it's own keys
+  */
+  // it("warn unkeyed children", async () => {
+  //   const consoleErrorSpy = jest.spyOn(console, "error");
+
+  //   await page().evaluate(() => {
+  //     return new Promise(res => {
+  //       const { React, ReactDOM, ReactTransition } = window as any;
+  //       const { Transition, TransitionGroup } = ReactTransition;
+  //       const baseElement = document.querySelector("#app")!;
+  //       const arr = [1, 2];
+
+  //       ReactDOM.render(
+  //         <TransitionGroup>
+  //           {arr.map(v => (
+  //             <Transition>
+  //               <div id="test">{v}</div>
+  //             </Transition>
+  //           ))}
+  //         </TransitionGroup>,
+  //         baseElement,
+  //         res
+  //       );
+  //     });
+  //   });
+
+  //   expect(consoleErrorSpy).toBeCalledTimes(1);
+  // });
+
+  const render = makeRender(
+    ({
+      elements,
+      transitionProps,
+      ...rest
+    }: {
+      elements: number[];
+      [key: string]: any;
+    }) => {
+      const { TransitionGroup, Transition } = (window as any).ReactTransition;
+      return (
+        <TransitionGroup {...rest}>
+          {elements.map(v => (
+            <Transition key={v} {...transitionProps}>
+              <div>{v}</div>
+            </Transition>
+          ))}
+        </TransitionGroup>
+      );
+    },
+    res => {
+      debugger;
+      return res(document.querySelector("#app")?.innerHTML);
+    }
+  );
+
   it("add element", async () => {
-    const initialHTML = await render({
-      elements: [1, 2],
-    });
+    const initialHTML = await render({ elements: [1, 2] });
+
     expect(initialHTML).toBe(`<div>1</div><div>2</div>`);
 
-    const enterHTML = await render({
-      elements: [1, 2, 3],
-    });
+    const enterHTML = await render({ elements: [1, 2, 3] });
 
     expect(enterHTML).toBe(
       `<div>1</div>` +
@@ -81,7 +130,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div>2</div>` +
         `<div class="transition-enter-active transition-enter-to">3</div>`
@@ -89,7 +138,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div><div>2</div><div class="">3</div>`
     );
   });
@@ -98,15 +147,13 @@ describe("TransitionGroup", () => {
     await render({
       elements: [1, 2, 3],
     });
-    expect(await html("#container")).toBe(
-      `<div>1</div><div>2</div><div>3</div>`
-    );
+    expect(await html("#app")).toBe(`<div>1</div><div>2</div><div>3</div>`);
 
     await render({
       elements: [1, 2],
     });
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div>2</div>` +
         `<div class="transition-leave-from transition-leave-active">3</div>`
@@ -114,7 +161,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div>2</div>` +
         `<div class="transition-leave-active transition-leave-to">3</div>`
@@ -122,22 +169,20 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(`<div>1</div><div>2</div>`);
+    expect(await html("#app")).toBe(`<div>1</div><div>2</div>`);
   });
 
   it.skip("add + remove", async () => {
     await render({
       elements: [1, 2, 3],
     });
-    expect(await html("#container")).toBe(
-      `<div>1</div><div>2</div><div>3</div>`
-    );
+    expect(await html("#app")).toBe(`<div>1</div><div>2</div><div>3</div>`);
 
     await render({
       elements: [2, 3, 4],
     });
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="transition-leave-from transition-leave-active">1</div>` +
         `<div>2</div>` +
         `<div class="transition-leave-from transition-leave-active">3</div>`
@@ -145,7 +190,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div>2</div>` +
         `<div class="transition-leave-active transition-leave-to">3</div>`
@@ -153,20 +198,20 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(`<div>1</div><div>2</div>`);
+    expect(await html("#app")).toBe(`<div>1</div><div>2</div>`);
   });
 
   it("enter + move", async () => {
-    await render({
+    const initialHTML = await render({
       elements: [1, 3],
     });
-    expect(await html("#container")).toBe(`<div>1</div><div>3</div>`);
+    expect(initialHTML).toBe(`<div>1</div><div>3</div>`);
 
-    await render({
+    const enterHTML = await render({
       elements: [1, 2, 3],
     });
 
-    expect(await html("#container")).toBe(
+    expect(enterHTML).toBe(
       `<div>1</div>` +
         `<div class="transition-enter-from transition-enter-active">2</div>` +
         `<div class="transition-move" style="">3</div>`
@@ -174,7 +219,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div class="transition-enter-active transition-enter-to">2</div>` +
         `<div class="transition-move" style="">3</div>`
@@ -182,7 +227,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div><div class="">2</div><div class="" style="">3</div>`
     );
   });
@@ -191,15 +236,13 @@ describe("TransitionGroup", () => {
     await render({
       elements: [1, 2, 3],
     });
-    expect(await html("#container")).toBe(
-      `<div>1</div><div>2</div><div>3</div>`
-    );
+    expect(await html("#app")).toBe(`<div>1</div><div>2</div><div>3</div>`);
 
     await render({
       elements: [1, 3],
     });
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div class="transition-leave-from transition-leave-active">2</div>` +
         `<div class="transition-move" style="">3</div>`
@@ -207,7 +250,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div>` +
         `<div class="transition-leave-active transition-leave-to">2</div>` +
         `<div class="transition-move" style="">3</div>`
@@ -215,7 +258,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div>1</div><div class="" style="">3</div>`
     );
   });
@@ -238,14 +281,14 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="transition-appear-active transition-appear-to">1</div>` +
         `<div class="transition-appear-active transition-appear-to">2</div>`
     );
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` + `<div class="">2</div>`
     );
 
@@ -262,7 +305,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="transition-enter-active transition-enter-to">3</div>`
@@ -270,7 +313,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="">3</div>`
@@ -289,7 +332,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="transition-leave-active transition-leave-to">3</div>`
@@ -297,7 +340,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` + `<div class="">2</div>`
     );
   });
@@ -320,14 +363,14 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="transition-appear-active transition-appear-to">1</div>` +
         `<div class="transition-appear-active transition-appear-to">2</div>`
     );
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` + `<div class="">2</div>`
     );
 
@@ -344,7 +387,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="transition-enter-active transition-enter-to">3</div>`
@@ -352,7 +395,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="">3</div>`
@@ -371,7 +414,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="transition-leave-active transition-leave-to">3</div>`
@@ -379,7 +422,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` + `<div class="">2</div>`
     );
   });
@@ -403,14 +446,14 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="transition-appear-active transition-appear-to">1</div>` +
         `<div class="transition-appear-active transition-appear-to">2</div>`
     );
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` + `<div class="">2</div>`
     );
 
@@ -427,7 +470,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="transition-enter-active transition-enter-to">3</div>`
@@ -435,7 +478,7 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="">3</div>`
@@ -454,7 +497,7 @@ describe("TransitionGroup", () => {
 
     await nextFrame();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` +
         `<div class="">2</div>` +
         `<div class="transition-leave-active transition-leave-to">3</div>`
@@ -462,10 +505,12 @@ describe("TransitionGroup", () => {
 
     await transitionFinish();
 
-    expect(await html("#container")).toBe(
+    expect(await html("#app")).toBe(
       `<div class="">1</div>` + `<div class="">2</div>`
     );
   });
 
   it.skip("should not add move class if no move transition", () => {});
+
+  it.todo("should not update if props and children keys are the same");
 });

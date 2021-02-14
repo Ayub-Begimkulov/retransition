@@ -8,9 +8,10 @@
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c",
-    "test": "TESTING=true yarn build && npm run build --prefix tests/app && npm run build --prefix tests/app2 && jest",
-    "dev": "cd demo && npm run dev",
-    "lint": "eslint '*/**/*.{js,ts,tsx}' --fix"
+    "test": "TESTING=true yarn build && jest --runInBand",
+    "dev": "yarn --cwd demo dev",
+    "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
+    "coverage": "nyc report --reporter html --reporter text -t coverage --report-dir coverage/summary"
   },
   "keywords": [
     "react",
@@ -54,6 +55,8 @@
     "husky": "^4.3.0",
     "istanbul-lib-coverage": "^3.0.0",
     "jest": "^26.6.3",
+    "nyc": "^15.1.0",
+    "playwright": "^1.8.0",
     "puppeteer": "^5.4.1",
     "react": "^17.0.1",
     "rollup": "^2.33.3",
