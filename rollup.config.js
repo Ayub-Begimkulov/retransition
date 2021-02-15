@@ -2,7 +2,6 @@ import typescript from "rollup-plugin-typescript2";
 import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
 import { sizeSnapshot } from "rollup-plugin-size-snapshot";
-import istanbul from "rollup-plugin-istanbul";
 
 const isTesting = process.env.TESTING === "true";
 
@@ -22,7 +21,6 @@ export default {
         },
       }
     ),
-    isTesting && istanbul(),
     replace({
       "process.env.NODE_ENV": JSON.stringify("production"),
       "process.env.TESTING": JSON.stringify(isTesting),
