@@ -25,16 +25,16 @@ export function mergeChildMappings(
   next: Record<string, ReactElement> = {}
 ) {
   function getValueForKey(key: string) {
-    return key in next ? next[key] : prev[key];
+    return hasOwn(next, key) ? next[key] : prev[key];
   }
 
   // For each key of `next`, the list of keys to insert before that key in
   // the combined list
   const nextKeysPending = Object.create(null);
 
-  let pendingKeys = [];
+  let pendingKeys: string[] = [];
   for (const prevKey in prev) {
-    if (prevKey in next) {
+    if (hasOwn(next, prevKey)) {
       if (pendingKeys.length) {
         nextKeysPending[prevKey] = pendingKeys;
         pendingKeys = [];

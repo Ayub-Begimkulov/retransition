@@ -103,6 +103,7 @@ const Transition = (props: TransitionProps) => {
       if (finishLeave.current) {
         finishLeave.current(true);
       }
+      context?.register(el);
       const [
         beforeHook,
         hook,
@@ -157,6 +158,7 @@ const Transition = (props: TransitionProps) => {
       if (finishEnter.current) {
         finishEnter.current(true);
       }
+      context?.unregister(el);
       const {
         type,
         name = "transition",
@@ -182,7 +184,6 @@ const Transition = (props: TransitionProps) => {
           if (isMounted.current) {
             setLocalVisible(false);
           }
-          context?.unregister(el);
           if (!unmount) {
             const s = (el as HTMLElement).style;
             initialDisplay.current = s.display;
@@ -248,8 +249,8 @@ const Transition = (props: TransitionProps) => {
       }
       elRef.current = el;
       if (el) {
-        context?.register(el);
         unmount && performEnter(el);
+        context?.register(el);
       }
     },
     [performEnter, latestProps, context]

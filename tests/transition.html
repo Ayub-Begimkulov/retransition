@@ -34,6 +34,9 @@
       .leave-step-1 {
         opacity: 1;
       }
+      .transition-leave-active {
+        position: absolute;
+      }
       .anim-leave-to,
       .anim-enter-from {
         opacity: 0;
@@ -80,7 +83,11 @@
       crossorigin
       src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"
     ></script>
-    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
-    <script src="../dist/index.umd.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/tslib/2.1.0/tslib.min.js"
+      integrity="sha512-LqHxo1ZVrmX9WW6ubkB7TnxREaVC6BrB1MjARot1HOitVZvB2MFJygR727/e+W2coTgXnSYiaQZZdUdC9oPsug=="
+      crossorigin="anonymous"
+    ></script>
+    <script src="./index.umd.js"></script>
   </body>
 </html>

@@ -9,32 +9,56 @@ const isTesting = process.env.TESTING === "true";
 export default {
   input: "src/index.ts",
   plugins: [
-    typescript(),
+    typescript(
+      isTesting && {
+        tsconfigOverride: {
+          compilerOptions: {
+            declaration: false,
+            sourceMap: true,
+            inlineSourceMap: true,
+            inlineSources: true,
+            removeComments: false,
+          },
+        },
+      }
+    ),
     isTesting && istanbul(),
     replace({
       "process.env.NODE_ENV": JSON.stringify("production"),
       "process.env.TESTING": JSON.stringify(isTesting),
     }),
-    sizeSnapshot(),
-    terser(),
+    !isTesting && sizeSnapshot(),
+    !isTesting && terser(),
   ].filter(Boolean),
   external: ["react"],
-  output: [
-    {
-      file: "dist/index.js",
-      format: "cjs",
-    },
-    {
-      file: "dist/index.es.js",
-      format: "es",
-    },
-    {
-      file: "dist/index.umd.js",
-      format: "umd",
-      name: "ReactTransition",
-      globals: {
-        react: "React",
-      },
-    },
-  ],
+  output: isTesting
+    ? [
+        {
+          file: "tests/index.umd.js",
+          format: "umd",
+          name: "ReactTransition",
+          globals: {
+            react: "React",
+          },
+          sourcemap: "inline",
+        },
+      ]
+    : [
+        {
+          file: "dist/index.js",
+          format: "cjs",
+        },
+        {
+          file: "dist/index.es.js",
+          format: "es",
+        },
+        {
+          file: "dist/index.umd.js",
+          format: "umd",
+          name: "ReactTransition",
+          globals: {
+            react: "React",
+          },
+        },
+      ],
 };

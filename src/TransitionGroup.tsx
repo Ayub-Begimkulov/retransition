@@ -36,6 +36,7 @@ const TransitionGroup = ({
   appear,
   moveClass,
 }: TransitionGroupProps) => {
+  // we have to check that array didn't had any keys before calling toArray
   const childrenArray = Children.toArray(children) as React.ReactElement[];
   const childrenRef = useLatest(childrenArray);
   const prevChildren = usePrevious(childrenArray);
@@ -70,7 +71,7 @@ const TransitionGroupMemo = memo(
     const prevRunEffect = usePrevious(runEffect);
     const isMounted = useIsMounted();
 
-    // TODO does having `newChildrenElements` is useful?
+    // TODO does having `newChildrenElements` is helpful?
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
@@ -87,12 +88,16 @@ const TransitionGroupMemo = memo(
           return !isMounted.current;
         },
         register(el: Element) {
-          newChildrenElements.current.push(el);
+          if (!(el as any).__registered) {
+            (el as any).__registered = true;
+            newChildrenElements.current.push(el);
+          }
         },
         unregister(el: Element) {
           prevChildrenElements.current = prevChildrenElements.current.filter(
             e => e !== el
           );
+          (el as any).__registered = null;
         },
       }),
       [isMounted]
