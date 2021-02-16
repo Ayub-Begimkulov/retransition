@@ -1,8 +1,8 @@
 # React Transition
 
-![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/react-transition)
-![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)
+[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/react-transition)](https://github.com/Ayub-Begimkulov/react-transition/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)](https://www.npmjs.com/package/@ayub-begimkulov/react-transition)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)](https://bundlephobia.com/result?p=@ayub-begimkulov/react-transition)
 
 Library that helps you create smooth css transitions in your react app.
 
