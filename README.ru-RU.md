@@ -8,9 +8,9 @@
 
 <!-- The library that helps you create smooth CSS transitions in your react app. -->
 
-| [English](https://github.com/Ayub-Begimkulov/react-transition/blob/master/README.md) | Russian |
+| [English](README.md) | Russian |
 
-## Features
+## Преимущества
 
 - Автоматическое определение конца анимации
 - Анимация списков по FLIP технике

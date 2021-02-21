@@ -6,7 +6,7 @@
 
 The library that helps you create smooth CSS transitions in your react app.
 
-| English | [Russian](https://github.com/Ayub-Begimkulov/react-transition/blob/master/README.ru-RU.md) |
+| English | [Russian](README.ru-RU.md) |
 
 ## Features
 
