@@ -99,7 +99,8 @@ const Transition = (props: TransitionProps) => {
       if (!appear && !isMounted.current) {
         return;
       }
-      // exit if no appear and component isn't mounted
+      // technically it's appear transition, but the parent <TransitionGroup> is already
+      // mounted
       const isAppear =
         appear && !isMounted.current && (context ? context.isAppearing : true);
       if (finishLeave.current) {
@@ -224,6 +225,8 @@ const Transition = (props: TransitionProps) => {
       setLocalVisible(true);
     } else if (el) {
       if (!isMounted.current) {
+        // add display none to element if the component
+        // isn't mounted but has `visible` prop set to `false`
         if (latestProps.current.unmount === false) {
           initialDisplay.current = (el as HTMLElement).style.display;
           (el as HTMLElement).style.display = "none";
