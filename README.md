@@ -6,6 +6,8 @@
 
 The library that helps you create smooth CSS transitions in your react app.
 
+| English | [Russian](https://github.com/Ayub-Begimkulov/react-transition/blob/master/README.ru-RU.md) |
+
 ## Features
 
 - Automatic transition/animation end detection
@@ -510,7 +512,7 @@ This is a container that wraps your `<Transition>` components and performs enter
 | appear    | `boolean`            | `false`              | if true performs appear transition for all of it's on initial render.                   |
 | children  | `React.ReactElement` | -                    | Elements wrapped in `<Transition />` component. |
 
-## Contribution
+## Contributing
 
 If you have any questions, suggestions, or improvements, feel free to open an issue or a pull request.
 
