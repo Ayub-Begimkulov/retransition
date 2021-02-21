@@ -11,7 +11,7 @@
     "test": "TESTING=true yarn build && nyc instrument tests/index.umd.js > tests/lib.js && jest --runInBand",
     "dev": "yarn --cwd demo dev",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
-    "coverage": "nyc report --reporter html --reporter text -t coverage --report-dir coverage/summary"
+    "coverage": "nyc report --reporter lcov --reporter text -t coverage --report-dir coverage"
   },
   "keywords": [
     "react",

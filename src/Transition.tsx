@@ -95,9 +95,11 @@ const Transition = (props: TransitionProps) => {
         onAfterAppear = customAppear ? undefined : onAfterEnter,
         onAppearCancelled = customAppear ? undefined : onEnterCancelled,
       } = latestProps.current;
+      // exit if no appear and component isn't mounted
       if (!appear && !isMounted.current) {
         return;
       }
+      // exit if no appear and component isn't mounted
       const isAppear =
         appear && !isMounted.current && (context ? context.isAppearing : true);
       if (finishLeave.current) {
@@ -133,7 +135,7 @@ const Transition = (props: TransitionProps) => {
           ];
       beforeHook && beforeHook(el);
       if (!unmount) {
-        // TODO think about the case with initial `display: none`
+        // can we enter this branch without having initialDisplay?
         (el as HTMLElement).style.display = initialDisplay.current || "";
       }
       addClass(el, fromClass, activeClass);
