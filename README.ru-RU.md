@@ -16,7 +16,7 @@
 - Анимация списков по FLIP технике
 - Совместим с React strict mode
 - Маленький размер (<2.8kb minified gzipped)
-- Подджерка TypeScript'а из коробки
+- Поддержка TypeScript'а из коробки
 
 ## Мотивация
 
@@ -24,7 +24,7 @@
 
 ## Установка
 
-На данный момент этот пакет опубликован как `@ayub-begimkulov/react-transition`. Я воспользовался этим имненем так как пока не знаю как назвать эту библиотеку (если есть какие-то идеи, можно открыть issue).
+На данный момент этот пакет опубликован как `@ayub-begimkulov/react-transition`. Я воспользовался этим именем так как пока не знаю как назвать эту библиотеку (если есть какие-то идеи, можно открыть issue).
 
 npm:
 
@@ -89,19 +89,19 @@ const App = () => {
 
 Давайте рассмотрим данный пример по подробнее и посмотрим что происходит "под капотом".
 
-Компонент `<Transition>` скрывает и показывает дочерний элемент на основе пропса `visible`. Однако это не произойдет многновенно. Каждое появление и исчезновение будет происходит в 3 шага:
+Компонент `<Transition>` скрывает и показывает дочерний элемент на основе пропса `visible`. Однако это не произойдет мгновенно. Каждое появление и исчезновение будет происходит в 3 шага:
 
-1. На первом шаге елмент будет добавлен в DOM, если у нас происходит появление. Будут добавленны классы `fade-(enter|leave)-from` и `fade-(enter|leave)-active`.
+1. На первом шаге элемент будет добавлен в DOM, если у нас происходит появление. Будут добавлены классы `fade-(enter|leave)-from` и `fade-(enter|leave)-active`.
 
-2. Когда бразуер успеет обновить экран, будет удален класс `fade-(enter|leave)-from` и добавлен `fade-(enter|leave)-to`. Если стили для классов корректно прописаны, то у нас сработает анимация.
+2. Когда браузер успеет обновить экран, будет удален класс `fade-(enter|leave)-from` и добавлен `fade-(enter|leave)-to`. Если стили для классов корректно прописаны, то у нас сработает анимация.
 
-3. Когда анимация окончиться, мы удалим классы `fade-(enter|leave)-active` и `fade-(enter|leave)-to`. Если у нас просиходила анимация исчезнования, то элемент будет удален из DOM.
+3. Когда анимация окончиться, мы удалим классы `fade-(enter|leave)-active` и `fade-(enter|leave)-to`. Если у нас происходила анимация исчезновения, то элемент будет удален из DOM.
 
 ### CSS Анимация
 
 <!-- TODO english verion -->
 
-Несмотря на то что CSS транзишены проще и чаще используются, есть некоторые ситуации когда они не дают нам достаточно контроля. Поэтому данная бибилотека позволяет так же работать с CSS анимациями.
+Несмотря на то что CSS транзишены проще и чаще используются, есть некоторые ситуации когда они не дают нам достаточно контроля. Поэтому данная библиотека позволяет так же работать с CSS анимациями.
 
 [Попробовать в codesandbox](https://codesandbox.io/s/css-animation-example-nroet?file=/src/App.js)
 
@@ -157,9 +157,9 @@ const App = () => {
 </Transition>
 ```
 
-### Анимация при первом реденере
+### Анимация при первом рендере
 
-Так же по дефолту анимация не срабоатет при первоначальном рендере. Если вы хотите поменять это - передайте проп `appear`.
+Так же по дефолту анимация не сработает при первоначальном рендере. Если вы хотите поменять это - передайте проп `appear`.
 
 ```jsx
 <Transition name="fade" visible={visible} appear>
@@ -169,7 +169,7 @@ const App = () => {
 
 > Обратите внимание что можно просто передать `appear` без какого либо значения, это будет эквивалентно `appear={true}`.
 
-Анимация будет идентичной с той что вы используете для поялвления. Однако если вам нужно чтобы первый ренедер анимировался по другому (были другие классы и ивенты), вы можете передать `customAppear`. В таком случае компонент добавит классы `${name}-appear-from`, `${name}-appear-active` и `${name}-appear-to` во время анимации и вызовет ивенты `onBeforeAppear`, `onAppear` и `onAfterAppear`.
+Анимация будет идентичной с той что вы используете для появления. Однако если вам нужно чтобы первый рендер анимировался по другому (были другие классы и ивенты), вы можете передать `customAppear`. В таком случае компонент добавит классы `${name}-appear-from`, `${name}-appear-active` и `${name}-appear-to` во время анимации и вызовет ивенты `onBeforeAppear`, `onAppear` и `onAfterAppear`.
 
 ```jsx
 <Transition name="fade" visible={visible} appear customAppear>
@@ -179,7 +179,7 @@ const App = () => {
 
 ### JavaScript ивенты
 
-`<Transition>` компонет имеет javascript ивенты для каждой фазы анимации.
+`<Transition>` компонент имеет javascript ивенты для каждой фазы анимации.
 
 ```jsx
 <Transition
@@ -202,7 +202,7 @@ const App = () => {
 
 ### Анимирование элементов списка
 
-Пока мы рассматривали только анимирование только одного элемента. Но что делать, если мы хотим анимировать элементы списка? Для этого есть комнент `<TransitionGroup />`. Он работает как стейт машина, которая определяет что элемент списка был добавлен/удален и передает корректные пропсы в дочерние `<Transition>` комопоненты.
+Пока мы рассматривали только анимирование только одного элемента. Но что делать, если мы хотим анимировать элементы списка? Для этого есть компонент `<TransitionGroup />`. Он работает как стейт машина, которая определяет что элемент списка был добавлен/удален и передает корректные пропсы в дочерние `<Transition>` компоненты.
 
 <!-- We've been working with single elements so far. But what if you want to animate enter/leave of list items. That's where you should use `<TransitionGroup>`. It's like a state machine that detects an item addition/removal and passes correct props to `<Transition>` component. -->
 
@@ -296,9 +296,9 @@ const App = () => {
 
 ### Анимирование перемещения элементов списка
 
-У нас еще есть одна пробелма с прошлым примером. Когда мы добавляем/удаляем элемент списка, остальные элементы "прыгают" в свое новое положение. Давате посмотрим как это можно исправить.
+У нас еще есть одна проблема с прошлым примером. Когда мы добавляем/удаляем элемент списка, остальные элементы "прыгают" в свое новое положение. Давайте посмотрим как это можно исправить.
 
-`<TransitionGroup>` добавляет `${name}-move` класс свои дочерним элементам когда они меняют свое положение. Давайте подправим наш прошлий пример и посмотрим что получиться.
+`<TransitionGroup>` добавляет `${name}-move` класс свои дочерним элементам когда они меняют свое положение. Давайте подправим наш прошлый пример и посмотрим что получиться.
 
 [Попробовать в codesandbox](https://codesandbox.io/s/transition-group-list-example-dkw6e?file=/src/App.js)
 
@@ -483,27 +483,27 @@ const App = () => {
 | name              | `string`                  | `transition`                  | Имя анимации. Используется для генерации классов анимации |
 | appear            | `boolean`                 | `false`                       | Определяет нужно ли запускать анимацию при первоначальном рендере. |
 | customAppear      | `boolean`                 | `false`                       | По дефолту анимация первоначального появления (`appear`) использует классы и ивенты анимации обычно появления (`enter`). Если вы хотите генерировать кастомные классы и использовать кастомные ивенты, передайте `true` |
-| nodeRef           | `React.MutableRef<Element \| null> \| ((node: Element) => void` | `undefined` | `<Transition />` компонент использует `ref` для получения дочрнего DOM элемента. Если вы тоже хотите использовать `ref` для дочернего элемента, передайте его компоненту `<Transition>` |
-| unmount           | `boolean`                 | `true`                        | По дефолту, дочерний элемент будет демантирован при исчезновении. Если вы хотите чтобы он был скрыт с помощью `display: none`, передайте `false`.  |
+| nodeRef           | `React.MutableRef<Element \| null> \| ((node: Element) => void` | `undefined` | `<Transition />` компонент использует `ref` для получения дочернего DOM элемента. Если вы тоже хотите использовать `ref` для дочернего элемента, передайте его компоненту `<Transition>` |
+| unmount           | `boolean`                 | `true`                        | По дефолту, дочерний элемент будет демонтирован при исчезновении. Если вы хотите чтобы он был скрыт с помощью `display: none`, передайте `false`.  |
 | type              | `'animation' \| 'transition' \| undefined` | `undefined` | TODO |
 | enterFromClass    | `string`                  | `` `${name}-enter-from` ``    | Класс задающий начальное состояние анимации появления. |
-| enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Класс задающий активное сосотояние анимации поялвения. Используйте его для определения длительности и временной функции. |
+| enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Класс задающий активное состояние анимации поялвения. Используйте его для определения длительности и временной функции. |
 | enterToClass      | `string`                  | `` `${name}-enter-active` ``  | Класс задающий конечное состояние анимации появления. |
 | leaveFromClass    | `string`                  | `` `${name}-leave-from` ``    | Класс задающий начальное состояние анимации исчезновения. |
-| leaveActiveClass  | `string`                  | `` `${name}-leave-active` ``  | Класс задающий активное сосотояние анимации ичезновения. Используйте его для определения длительности и временной функции.  |
+| leaveActiveClass  | `string`                  | `` `${name}-leave-active` ``  | Класс задающий активное состояние анимации ичезновения. Используйте его для определения длительности и временной функции.  |
 | leaveToClass      | `string`                  | `` `${name}-leave-to` ``      | Класс задающий конечное состояние анимации исчезновения. |
 | appearFromClass   | `string`                  | `` `enterFromClass` ``   | Класс задающий начальное состояние анимации первоначального появления (`appear`). По дефолту используется `enterFromClass`. Чтобы поменять `customAppear` prop. |             
-| appearActiveClass | `string`                  | `` `enterActiveClass` `` | Класс задающий активное сосотояние анимации первоначального появления (`appear`). Используйте его для определения длительности и временной функции. |
+| appearActiveClass | `string`                  | `` `enterActiveClass` `` | Класс задающий активное состояние анимации первоначального появления (`appear`). Используйте его для определения длительности и временной функции. |
 | appearToClass     | `string`                  | `` `enterToClass` ``     | Класс задающий конечное состояние анимации первоначального появления (`appear`). |
-| onBeforeEnter | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься перед тем как добавляются `enterFromClass` и `enterActiveClass`. |
-| onEnter | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься после добавления `enterFromClass` и `enterActiveClass`. |
-| onAfterEnter | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься когда анимация появления оконченна и все классы анимации удалены. |
-| onBeforeLeave | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься перед тем как добавляются `leaveFromClass` и `leaveActiveClass`. |
-| onLeave | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься после добавления `leaveFromClass` и `leaveActiveClass`. |
-| onAfterLeave | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься когда анимация исчезновения оконченна и все классы анимации удалены. |
-| onBeforeAppear | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься перед тем как добавляются `appearFromClass` и `appearActiveClass`. |
-| onAppear | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься после добавления `appearFromClass` и `appearActiveClass`. |
-| onAfterAppear | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызываеься когда анимация первоначального появления (`appear`) оконченна и все классы анимации удалены. |
+| onBeforeEnter | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается перед тем как добавляются `enterFromClass` и `enterActiveClass`. |
+| onEnter | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается после добавления `enterFromClass` и `enterActiveClass`. |
+| onAfterEnter | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается когда анимация появления окончена и все классы анимации удалены. |
+| onBeforeLeave | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается перед тем как добавляются `leaveFromClass` и `leaveActiveClass`. |
+| onLeave | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается после добавления `leaveFromClass` и `leaveActiveClass`. |
+| onAfterLeave | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается когда анимация исчезновения окончена и все классы анимации удалены. |
+| onBeforeAppear | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается перед тем как добавляются `appearFromClass` и `appearActiveClass`. |
+| onAppear | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается после добавления `appearFromClass` и `appearActiveClass`. |
+| onAfterAppear | `(el: Element) => void`|`undefined` | JavaScript ивент. Вызывается когда анимация первоначального появления (`appear`) окончена и все классы анимации удалены. |
 
 ### TransitionGroup
 
