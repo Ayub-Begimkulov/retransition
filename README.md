@@ -6,12 +6,20 @@
 
 The library that helps you create smooth CSS transitions in your react app.
 
-## Why?
+## Features
+
+- Automatic transition/animation end detection
+- List animations with FLIP technique
+- React strict mode compatible
+- Small size (<2.8kb minified gzipped)
+- TypeScript support out of the box
+
+## Motivation
 
 I decided to create this package because often used `react-transition-group`
 but I didn't like some things about it. For instance, you have to pass `timeout`
 or provide your custom `addEndListener`. Also, you don't have a "move" transition
-for `<TransitionGroup />`.
+for `<TransitionGroup />` and it's not strict mode compatible.
 
 ## Install
 
@@ -31,7 +39,9 @@ yarn add @ayub-begimkulov/react-transition
 
 Note that this library uses hooks, so you need to have `react` and `react-dom` 16.8.0 or higher.
 
-## Basic example
+## Getting started
+
+### Basic example
 
 [Try in codesandbox](https://codesandbox.io/s/css-transiton-basic-example-928fh?file=/src/App.js)
 
