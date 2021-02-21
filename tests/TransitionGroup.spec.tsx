@@ -256,7 +256,8 @@ describe("TransitionGroup", () => {
         `<div class="transition-move" style="">3</div>`
     );
 
-    await transitionFinish();
+    // for some reason it's not passing with `transitionFinish` in ci
+    await timeout(duration * 2);
 
     expect(await html("#app")).toBe(
       `<div>1</div><div class="" style="">3</div>`
