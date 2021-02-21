@@ -144,16 +144,16 @@ describe("TransitionGroup", () => {
   });
 
   it("remove element", async () => {
-    await render({
+    const initialHTML = await render({
       elements: [1, 2, 3],
     });
-    expect(await html("#app")).toBe(`<div>1</div><div>2</div><div>3</div>`);
+    expect(initialHTML).toBe(`<div>1</div><div>2</div><div>3</div>`);
 
-    await render({
+    const leaveHTML = await render({
       elements: [1, 2],
     });
 
-    expect(await html("#app")).toBe(
+    expect(leaveHTML).toBe(
       `<div>1</div>` +
         `<div>2</div>` +
         `<div class="transition-leave-from transition-leave-active">3</div>`
@@ -173,16 +173,16 @@ describe("TransitionGroup", () => {
   });
 
   it.skip("add + remove", async () => {
-    await render({
+    const initialHTML = await render({
       elements: [1, 2, 3],
     });
-    expect(await html("#app")).toBe(`<div>1</div><div>2</div><div>3</div>`);
+    expect(initialHTML).toBe(`<div>1</div><div>2</div><div>3</div>`);
 
-    await render({
+    const newHTML = await render({
       elements: [2, 3, 4],
     });
 
-    expect(await html("#app")).toBe(
+    expect(newHTML).toBe(
       `<div class="transition-leave-from transition-leave-active">1</div>` +
         `<div>2</div>` +
         `<div class="transition-leave-from transition-leave-active">3</div>`
@@ -233,16 +233,16 @@ describe("TransitionGroup", () => {
   });
 
   it("remove + move", async () => {
-    await render({
+    const initialHTML = await render({
       elements: [1, 2, 3],
     });
-    expect(await html("#app")).toBe(`<div>1</div><div>2</div><div>3</div>`);
+    expect(initialHTML).toBe(`<div>1</div><div>2</div><div>3</div>`);
 
-    await render({
+    const leaveHTML = await render({
       elements: [1, 3],
     });
 
-    expect(await html("#app")).toBe(
+    expect(leaveHTML).toBe(
       `<div>1</div>` +
         `<div class="transition-leave-from transition-leave-active">2</div>` +
         `<div class="transition-move" style="">3</div>`
