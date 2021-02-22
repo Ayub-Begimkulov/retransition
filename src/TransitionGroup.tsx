@@ -9,7 +9,13 @@ import React, {
 import { TransitionGroupContext } from "./context";
 import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
-import { addClass, combine, hasOwn, removeClass } from "./utils";
+import {
+  addClass,
+  combine,
+  getTransitionInfo,
+  hasOwn,
+  removeClass,
+} from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
@@ -22,6 +28,11 @@ export interface TransitionGroupProps {
   children:
     | React.ReactElement<TransitionProps>
     | React.ReactElement<TransitionProps>[];
+}
+
+const enum ElementBindings {
+  registered = "_r_",
+  moveCallback = "_mc_",
 }
 
 interface TransitionGroupMemoProps
@@ -88,8 +99,8 @@ const TransitionGroupMemo = memo(
           return !isMounted.current;
         },
         register(el: Element) {
-          if (!(el as any).__registered) {
-            (el as any).__registered = true;
+          if (!(el as any)[ElementBindings.registered]) {
+            (el as any)[ElementBindings.registered] = true;
             newChildrenElements.current.push(el);
           }
         },
@@ -97,7 +108,7 @@ const TransitionGroupMemo = memo(
           prevChildrenElements.current = prevChildrenElements.current.filter(
             e => e !== el
           );
-          (el as any).__registered = null;
+          (el as any)[ElementBindings.registered] = null;
         },
       }),
       [isMounted]
@@ -113,29 +124,55 @@ const TransitionGroupMemo = memo(
         }
       };
       const moveCls = moveClass || `${name || "transition"}-move`;
-      const childrenToMove = prevChildrenElements.current;
+      let childrenToMove = prevChildrenElements.current;
       if (!isMounted.current) {
         updateChildren();
         return;
       }
+      console.time("transition time");
+      const root = childrenToMove[0].parentElement!;
+      const test = childrenToMove.map(child => {
+        const clone = child.cloneNode() as HTMLElement;
+        addClass(clone, moveCls);
+        clone.style.display = "none";
+        root.appendChild(clone);
+        return [child, clone];
+      });
+      const result = [];
+      for (let i = 0, l = test.length; i < l; i++) {
+        const [child, clone] = test[i];
+        if (getTransitionInfo(clone).hasTransform) {
+          result.push(child);
+        }
+      }
+      childrenToMove = result;
+      test.forEach(([, clone]) => {
+        root.removeChild(clone);
+      });
+
       // 3 separate loops for performance
       // https://stackoverflow.com/questions/19250971/why-a-tiny-reordering-of-dom-read-write-operations-causes-a-huge-performance-dif
-      childrenToMove.forEach(el => (el as any)._endCb?.());
+      childrenToMove.forEach(el =>
+        (el as any)[ElementBindings.moveCallback]?.()
+      );
       childrenToMove.forEach(recordNewPosition);
       const movedChildren = childrenToMove.filter(applyTranslation);
+
       forceReflow();
 
       movedChildren.forEach(child => {
         addClass(child, moveCls);
         (child as HTMLElement).style.transitionDuration = "";
         (child as HTMLElement).style.transform = "";
-        const endCb = ((child as any)._endCb = (e?: Event) => {
+        const endCb = ((child as any)[ElementBindings.moveCallback] = (
+          e?: Event
+        ) => {
           if (e && e.target !== child) {
             return;
           }
           if (!e || /transform$/.test((e as TransitionEvent).propertyName)) {
             child.removeEventListener("transitionend", endCb);
-            (child as any)._endCb = null;
+            (child as any)[ElementBindings.moveCallback] = null;
             removeClass(child, moveCls);
           }
         });
@@ -143,6 +180,7 @@ const TransitionGroupMemo = memo(
         // whenTransitionEnds here
         child.addEventListener("transitionend", endCb);
       });
+      console.timeEnd("transition time");
       updateChildren();
     }, [
       runEffect,

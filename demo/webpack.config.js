@@ -37,10 +37,6 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".jsx"],
     modules: ["node_modules", "./src"],
-    alias: {
-      "react-dom$": "react-dom/profiling",
-      "scheduler/tracing": "scheduler/tracing-profiling",
-    },
   },
   plugins: [
     new HTMLWebpackPlugin({
