@@ -1,17 +1,27 @@
 # React Transition
 
-![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/react-transition)
-![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)
+[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/react-transition)](https://github.com/Ayub-Begimkulov/react-transition/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)](https://www.npmjs.com/package/@ayub-begimkulov/react-transition)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)](https://bundlephobia.com/result?p=@ayub-begimkulov/react-transition)
 
-Library that helps you create smooth css transitions in your react app.
+The library that helps you create smooth CSS transitions in your react app.
 
-## Why?
+| English | [Russian](README.ru-RU.md) |
+
+## Features
+
+- Automatic transition/animation end detection
+- List animations with FLIP technique
+- React strict mode compatible
+- Small size (<2.8kb minified gzipped)
+- TypeScript support out of the box
+
+## Motivation
 
 I decided to create this package because often used `react-transition-group`
-but I didn't like some things about it. For instance you have to pass `timeout`
-or provide your custom `addEndListener`. Also you don't have a "move" transition
-for `<TransitionGroup />`.
+but I didn't like some things about it. For instance, you have to pass `timeout`
+or provide your custom `addEndListener`. Also, you don't have a "move" transition
+for `<TransitionGroup />` and it's not strict mode compatible.
 
 ## Install
 
@@ -31,9 +41,9 @@ yarn add @ayub-begimkulov/react-transition
 
 Note that this library uses hooks, so you need to have `react` and `react-dom` 16.8.0 or higher.
 
-## Usage
+## Getting started
 
-### CSS Transition
+### Basic example
 
 [Try in codesandbox](https://codesandbox.io/s/css-transiton-basic-example-928fh?file=/src/App.js)
 
@@ -76,7 +86,17 @@ const App = () => {
 }
 ```
 
+Let's dive deeper into this example and understand what happens under the hood.
+
+When you change the `visible` prop of the `<Transition>` component, it will show or hide the children element according to it. But it won't do it immediately. Entering and Leaving will be done in 3 steps:
+
+1. At the step first element would be inserted into the DOM if it's enter transition. `from` and `active` classes would be added.
+2. On the next frame (once the browser was able to rerender the screen and apply new styles) we remove `from` class and add `to` class. If the classes are written correctly, this should trigger a transition.
+3. Once the transition is finished, we remove `active` and `to` classes. The element would be removed from the DOM if it's a `leave` transition.
+
 ### CSS Animation
+
+Although CSS transitions are more common and simpler, there are some situations where they don't give you enough control.
 
 [Try in codesandbox](https://codesandbox.io/s/css-animation-example-nroet?file=/src/App.js)
 
@@ -109,13 +129,12 @@ const App = () => {
   animation: rotate-in 500ms ease reverse;
 }
 
-.fade-animation-move {
-  transition: transform 500ms ease;
-}
-
 @keyframes rotate-in {
   0% {
     transform: scale(0) rotate(360deg);
+  }
+  70% {
+    transform: scale(1.3) rotate(-108deg);
   }
   100% {
     transform: scale(1) rotate(0);
@@ -123,7 +142,256 @@ const App = () => {
 }
 ```
 
-### TransitionGroup Move
+### Unmounting
+
+Be default your child element/component will be unmounted on leave. But if you want it to be hidden with `display: none`, you could pass `umount` prop as `false`.
+
+```jsx
+<Transition name="fade" visible={visible} unmount={false}>
+  <div>I'm always in the DOM</div>
+</Transition>
+```
+
+### Transitions on Initial Render
+
+By default, your transition won't run on the initial render. If you want to change it, pass `appear` prop.
+
+```jsx
+<Transition name="fade" visible={visible} appear>
+  {/* ... */}
+</Transition>
+```
+
+> Note that you could just pass `appear` without any value and it'd be equivalent to `appear={true}`
+
+This will result in having enter transition (it'd use enter classes and events) on initial render. But if you want custom transition for the initial render you could pass `customAppear`. `${name}-appear-from`, `${name}-appear-active` and `${name}-appear-to` classes would be generated as a result.
+
+```jsx
+<Transition name="fade" visible={visible} appear customAppear>
+  {/* ... */}
+</Transition>
+```
+
+### JavaScript Events
+
+`<Transition>` provides javascript events for each phase of a transition.
+
+```jsx
+<Transition
+  name="fade"
+  visible={visible}
+  onBeforeEnter={onBeforeEnter}
+  onEnter={onEnter}
+  onAfterEnter={onAfterEnter}
+  onBeforeLeave={onBeforeLeave}
+  onLeave={onLeave}
+  onAfterLeave={onAfterLeave}
+  // only works with `customAppear`
+  onBeforeAppear={onBeforeAppear}
+  onAppear={onAppear}
+  onAfterAppear={onAfterAppear}
+>
+  {/* ... */}
+</Transition>
+```
+
+### Transition Group
+
+We've been working with single elements so far. But what if you want to animate enter/leave of list items. That's where you should use `<TransitionGroup>`. It's like a state machine that detects an item addition/removal and passes correct props to `<Transition>` component.
+
+[Try in codesandbox](https://codesandbox.io/s/transition-group-list-no-move-8ww7h)
+
+```jsx
+import React, { useState } from "react";
+import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+
+import "./index.css";
+
+const getRandomIndex = length => Math.floor(Math.random() * length);
+
+const initialNumbers = new Array(10)
+  .fill(null)
+  .map((_, i) => ({ value: i, index: Math.random() }));
+
+const App = () => {
+  const [numbers, setNumbers] = useState(initialNumbers);
+
+  const add = () => {
+    const index = getRandomIndex(numbers.length);
+    const newNum = {
+      value: numbers.length,
+      index: Math.random(),
+    };
+    const newValue = [
+      ...numbers.slice(0, index),
+      newNum,
+      ...numbers.slice(index),
+    ];
+    setNumbers(newValue);
+  };
+
+  const remove = () => {
+    const index = getRandomIndex(numbers.length);
+    const newValue = numbers.filter((_, idx) => idx !== index);
+    setNumbers(newValue);
+  };
+
+  return (
+    <>
+      <button onClick={add} style={{ marginRight: 5 }}>
+        Add
+      </button>
+      <button onClick={remove} style={{ marginRight: 5 }}>
+        Remove
+      </button>
+      <div>
+        <TransitionGroup name="fade">
+          {numbers.map(n => (
+            <Transition key={n.index}>
+              <div style={{ padding: 5 }}>{n.value}</div>
+            </Transition>
+          ))}
+        </TransitionGroup>
+      </div>
+    </>
+  );
+};
+```
+
+```css
+.fade-leave-to,
+.fade-enter-from {
+  transform: translateX(200px);
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.fade-leave-active {
+  /* 
+    note that we add absolute position to leaving element
+    so other elements change their position and trigger move transition 
+  */
+  position: absolute;
+}
+
+.fade-leave-from,
+.fade-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+```
+
+> Note that you can pass a `name` to your `<TransitionGroup>` and it will be used also for its children `<Transition>` components.
+
+### TransitionGroup Move Transition
+
+There is one problem with our previous example. When the item gets added/removed, other ones just snap into their new position. Let's see how we can fix it.
+
+`<TransitionGroup>` adds `${name}-move` class to its children whenever they change their position. Let's tweak our previous example a little bit and see what we can do with it.
+
+[Try in codesandbox](https://codesandbox.io/s/transition-group-list-example-dkw6e?file=/src/App.js)
+
+```diff
+import React, { useState } from "react";
+import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
++import { shuffle } from "lodash-es";
+
+import "./index.css";
+
+const getRandomIndex = length => Math.floor(Math.random() * length);
+
+const initialNumbers = new Array(10)
+  .fill(null)
+  .map((_, i) => ({ value: i, index: Math.random() }));
+
+const App = () => {
+  const [numbers, setNumbers] = useState(initialNumbers);
+
+  const add = () => {
+    const index = getRandomIndex(numbers.length);
+    const newNum = {
+      value: numbers.length,
+      index: Math.random(),
+    };
+    const newValue = [
+      ...numbers.slice(0, index),
+      newNum,
+      ...numbers.slice(index),
+    ];
+    setNumbers(newValue);
+  };
+
+  const remove = () => {
+    const index = getRandomIndex(numbers.length);
+    const newValue = numbers.filter((_, idx) => idx !== index);
+    setNumbers(newValue);
+  };
+
++ const reorder = () => {
++   setNumbers(n => shuffle(n));
++ };
+
+  return (
+    <>
+      <button onClick={add} style={{ marginRight: 5 }}>
+        Add
+      </button>
+      <button onClick={remove} style={{ marginRight: 5 }}>
+        Remove
+      </button>
++     <button onClick={reorder} style={{ marginRight: 5 }}>
++       Shuffle
++     </button>
+      <div>
+        <TransitionGroup name="fade">
+          {numbers.map(n => (
+            <Transition key={n.index}>
+              <div style={{ padding: 5 }}>{n.value}</div>
+            </Transition>
+          ))}
+        </TransitionGroup>
+      </div>
+    </>
+  );
+};
+```
+
+```diff
+.fade-leave-to,
+.fade-enter-from {
+  transform: translateX(200px);
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.fade-leave-active {
+  /*
+    note that we add absolute position to leaving element
+    so other elements change their position and trigger move transition
+  */
+  position: absolute;
+}
+
+.fade-leave-from,
+.fade-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+
++.fade-move {
++  transition: transform 500ms ease;
++}
+```
+
+It's really powerful as you can see. You can use it to create cool animations like this:
 
 [Try in codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
 
@@ -195,106 +463,6 @@ const App = () => {
 }
 ```
 
-### TransitionGroup Enter, Leave and Move
-
-[Try in codesandbox](https://codesandbox.io/s/transition-group-list-example-dkw6e?file=/src/App.js)
-
-```jsx
-import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
-import { shuffle } from "lodash-es";
-
-import "./index.css";
-
-const getRandomIndex = (length: number) => Math.floor(Math.random() * length);
-
-const initialNumbers = new Array(10)
-  .fill(null)
-  .map((_, i) => ({ value: i, index: Math.random() }));
-
-const App = () => {
-  const [numbers, setNumbers] = useState(initialNumbers);
-
-  const add = () => {
-    const index = getRandomIndex(numbers.length);
-    const newNum = {
-      value: numbers.length,
-      index: Math.random(),
-    };
-    const newValue = [
-      ...numbers.slice(0, index),
-      newNum,
-      ...numbers.slice(index),
-    ];
-    setNumbers(newValue);
-  };
-
-  const remove = () => {
-    const index = getRandomIndex(numbers.length);
-    const newValue = numbers.filter((_, idx) => idx !== index);
-    setNumbers(newValue);
-  };
-
-  const reorder = () => {
-    setNumbers(n => shuffle(n));
-  };
-
-  return (
-    <>
-      <button onClick={add} style={{ marginRight: 5 }}>
-        Add
-      </button>
-      <button onClick={remove} style={{ marginRight: 5 }}>
-        Remove
-      </button>
-      <button onClick={reorder} style={{ marginRight: 5 }}>
-        Shuffle
-      </button>
-      <div>
-        <TransitionGroup name="fade">
-          {numbers.map(n => (
-            <Transition key={n.index}>
-              <div style={{ padding: 5 }}>{n.value}</div>
-            </Transition>
-          ))}
-        </TransitionGroup>
-      </div>
-    </>
-  );
-};
-```
-
-```css
-.fade-leave-to,
-.fade-enter-from {
-  transform: translateX(200px);
-  opacity: 0;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 500ms ease, transform 500ms ease;
-}
-
-.fade-leave-active {
-  /* 
-    not that we add absolute position to leaving element
-    so other elements change their position and trigger move transition 
-  */
-  position: absolute;
-}
-
-.fade-leave-from,
-.fade-enter-to {
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.fade-move {
-  transition: transform 500ms ease;
-}
-```
-
 ## API
 
 ### Transition
@@ -320,10 +488,19 @@ const App = () => {
 | appearFromClass   | `string`                  | `` `enterFromClass` ``   | Class that sets the starting styles of appear transition. By default `enterFromClass` is used. To change this behavior pass `customAppear` prop. |             
 | appearActiveClass | `string`                  | `` `enterActiveClass` `` | Class that sets the active style of appear transition. This class can be used to define the duration, delay and easing curve for the appearing transition. |
 | appearToClass     | `string`                  | `` `enterToClass` ``     | Class that sets the ending styles of appear transition. |
+| onBeforeEnter | `(el: Element) => void`|`undefined` | JavaScript event. Called right before `enterFromClass` and `enterActiveClass` are added |
+| onEnter | `(el: Element) => void`|`undefined` | JavaScript event. Called after `enterFromClass` and `enterActiveClass` are added |
+| onAfterEnter | `(el: Element) => void`|`undefined` | JavaScript event. Called when enter transition is finished and all transition classes are removed |
+| onBeforeLeave | `(el: Element) => void`|`undefined` | JavaScript event. Called right before `leaveFromClass` and `leaveActiveClass` are added |
+| onLeave | `(el: Element) => void`|`undefined` | JavaScript event. Called after `leaveFromClass` and `leaveActiveClass` are added |
+| onAfterLeave | `(el: Element) => void`|`undefined` | JavaScript event. Called when leave transition is finished and all transition classes are removed |
+| onBeforeAppear | `(el: Element) => void`|`undefined` | JavaScript event. Called right before `appearFromClass` and `appearActiveClass` are added |
+| onAppear | `(el: Element) => void`|`undefined` | JavaScript event. Called after `appearFromClass` and `appearActiveClass` are added |
+| onAfterAppear | `(el: Element) => void`|`undefined` | JavaScript event. Called when appear transition is finished and all transition classes are removed |
 
 ### TransitionGroup
 
-This is a container that wraps your `<Transition>` components and performs enter/leave transition on added/removed elements form the list.
+This is a container that wraps your `<Transition>` components and performs enter/leave transition on added/removed elements from the list.
 
 #### Props
 
@@ -335,9 +512,9 @@ This is a container that wraps your `<Transition>` components and performs enter
 | appear    | `boolean`            | `false`              | if true performs appear transition for all of it's on initial render.                   |
 | children  | `React.ReactElement` | -                    | Elements wrapped in `<Transition />` component. |
 
-## Contribution
+## Contributing
 
-If you have any question, suggestions or improvements, feel free to open issue or pull request.
+If you have any questions, suggestions, or improvements, feel free to open an issue or a pull request.
 
 ## License
 

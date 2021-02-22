@@ -662,6 +662,47 @@ describe("Transition", () => {
     expect(await isVisible("#transition-element")).toBe(false);
   });
 
+  it("appear w/ `unmount: false`", async () => {
+    const appearClasses = await render({
+      visible: true,
+      name: "test",
+      unmount: false,
+      appear: true,
+      customAppear: true,
+    });
+
+    expect(appearClasses).toEqual(["test-appear-from", "test-appear-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-appear-active",
+      "test-appear-to",
+    ]);
+    await transitionFinish();
+    expect(await classList("#transition-element")).toEqual([]);
+
+    // leave
+    const leaveClasses = await render({ visible: false });
+    expect(leaveClasses).toEqual(["test-leave-from", "test-leave-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-leave-active",
+      "test-leave-to",
+    ]);
+    await transitionFinish();
+    expect(await isVisible("#transition-element")).toBe(false);
+
+    // enter
+    const enterClasses = await render({ visible: true });
+    expect(enterClasses).toEqual(["test-enter-from", "test-enter-active"]);
+    await nextFrame();
+    expect(await classList("#transition-element")).toEqual([
+      "test-enter-active",
+      "test-enter-to",
+    ]);
+    await transitionFinish();
+    expect(await classList("#transition-element")).toEqual([]);
+  });
+
   it.todo("explicit type");
 
   it("transition cancel (appear/enter/leave)", async () => {
