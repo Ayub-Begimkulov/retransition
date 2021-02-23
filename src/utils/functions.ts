@@ -1,4 +1,3 @@
-import { ElementBindings } from "../constants";
 import { AnyFunction, AnyObject } from "../types";
 
 export function isFunction(val: unknown): val is AnyFunction {
@@ -32,25 +31,14 @@ export function nextFrame(cb: () => void) {
 export function addClass(el: Element, ...classes: string[]) {
   return classes.forEach(cls =>
     cls.split(/\s+/).forEach(c => {
-      if (c) {
-        (
-          (el as any)[ElementBindings.transitionClasses] ||
-          ((el as any)[ElementBindings.transitionClasses] = new Set())
-        ).add(c);
-        el.classList.add(c);
-      }
+      c && el.classList.add(c);
     })
   );
 }
 
 export function removeClass(el: Element, ...classes: string[]) {
   return classes.forEach(cls =>
-    cls.split(/\s+/).forEach(c => {
-      if (c) {
-        (el as any)[ElementBindings.transitionClasses]?.delete(c);
-        el.classList.remove(c);
-      }
-    })
+    cls.split(/\s+/).forEach(c => c && el.classList.remove(c))
   );
 }
 

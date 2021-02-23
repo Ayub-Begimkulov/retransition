@@ -88,7 +88,7 @@ const App = () => {
 
 Let's dive deeper into this example and understand what happens under the hood.
 
-When you change the `visible` prop of the `<Transition>` component, it will show or hide the children element according to it. But it won't do it immediately. Entering and Leaving will be done in 3 steps:
+When you change the `visible` prop of the `<Transition>` component, it will show or hide the child element according to it. But it won't do it immediately. Entering and Leaving will be done in 3 steps:
 
 1. At the step first element would be inserted into the DOM if it's enter transition. `fade-(enter|leave)-from` and `fade-(enter|leave)-active` classes would be added.
 2. On the next frame (once the browser was able to rerender the screen and apply new styles) we remove `fade-(enter|leave)-from` class and add `fade-(enter|leave)-to` class. If classes are written correctly, this should trigger a transition.
@@ -142,6 +142,16 @@ const App = () => {
 }
 ```
 
+### Transition type
+
+Sometimes you may want to have `transition` and `animation` on the same element. This library will pick the one that has a longer duration to detect the end of the transition. But this may not be the case in some situations. For instance, if you have animation on initial render and transition on mouseover. In these cases, you have to manually pass about which type `<Transition>` component should care about.
+
+```jsx
+<Transition type="animation" {...props}>
+  {/* ... */}
+</Transition>
+```
+
 ### Unmounting
 
 Be default your child element/component will be unmounted on leave. But if you want it to be hidden with `display: none`, you could pass `umount` prop as `false`.
@@ -174,7 +184,7 @@ This will result in having enter transition on initial render. But if you want c
 
 ### Custom classes
 
-If you don't want your classes to be generated from the name, you could pass your own classes through props. They'll override generated classes.
+If you don't want your classes to be generated from the name, you could pass your classes through props. They'll override generated classes.
 
 ```jsx
 <Transition
@@ -216,7 +226,7 @@ If you don't want your classes to be generated from the name, you could pass you
 </Transition>
 ```
 
-### Lists Transitions
+### List Transitions
 
 <!-- TODO that it would only pass visible and appear -->
 
@@ -416,7 +426,7 @@ const App = () => {
 
 ### Custom move class
 
-You could pass you own move class, if you don't don't to use a generated one. Just pass a `moveClass` prop.
+You could pass your move class if you don't want to use a generated one. Just pass a `moveClass` prop.
 
 <!-- prettier-ignore -->
 ```jsx
@@ -425,7 +435,7 @@ You could pass you own move class, if you don't don't to use a generated one. Ju
 </Transition>
 ```
 
-You can use "move" class to create cool animations. Checkout this example:
+You can use "move" class to create cool animations. Check out this example:
 
 [Try in codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
 
@@ -499,7 +509,7 @@ const App = () => {
 
 ### Important note about move transition
 
-When you use `<TransitionGroup>`, it assumes that you want to have move transition. As a result, `moveClass` will be added to children, whenever they change their position. But if the styles for it don't have transition, it won't get removed (unlike with the `<Transition>` component, that removes classes if the transition/animation not defined). Because `<TransitionGroup>` doesn't check whether each child has transition or not, since it could be a performance bottleneck (for large lists). Therefor if you don't plan to have a move transition and don't wont unnecessary classes on your elements - pass `moveTransition="none"`.
+When you use `<TransitionGroup>`, it assumes that you want to have a move transition. As a result, `moveClass` will be added to children, whenever they change their position. But if the styles for it don't have a transition, it won't get removed (unlike with the `<Transition>` component, which removes classes if the transition/animation is not defined). Because `<TransitionGroup>` doesn't check whether each child has transition or not, since it could be a performance bottleneck (for large lists). Therefore if you don't plan to have a move transition and don't want unnecessary classes on your elements - pass `moveTransition="none"`.
 
 <!-- prettier-ignore -->
 ```jsx
@@ -523,7 +533,7 @@ When you use `<TransitionGroup>`, it assumes that you want to have move transiti
 | customAppear      | `boolean`                 | `false`                       | By default appear transition uses enter classes and events. But if you want it to generate custom classes and not use enter events, pass `true` |
 | nodeRef           | `React.MutableRef<Element \| null> \| ((node: Element) => void` | `undefined` | `<Transition />` component passes `ref` to it's children. So if you also want to use `ref` pass it to the wrapping `<Transition />` component |
 | unmount           | `boolean`                 | `true`                        | By default the child is unmounted on exit. If you prefer no unmounting (hided with `display: none`) change this to `false`. |
-| type              | `'animation' \| 'transition' \| undefined` | `undefined` | TODO |
+| type              | `'animation' \| 'transition' \| undefined` | `undefined` | Type of the transition that this component should care about |
 | enterFromClass    | `string`                  | `` `${name}-enter-from` ``    | Class that sets the starting styles of enter transition.                                                                                                   |
 | enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Class that sets the active style of enter transition. This class can be used to define the duration, delay and easing curve for the entering transition.   |
 | enterToClass      | `string`                  | `` `${name}-enter-active` ``  | Class that sets the ending styles of enter transition.                                                                                                     |
