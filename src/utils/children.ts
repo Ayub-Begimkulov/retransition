@@ -1,11 +1,12 @@
 import { ReactElement } from "react";
 import { hasOwn } from ".";
+import { __DEV__ } from "../constants";
 
 export function getChildMapping(children: ReactElement[]) {
   const result = {} as Record<string, ReactElement>;
   children.forEach(child => {
     if (!child.key || hasOwn(result, child.key)) {
-      if (process.env.NODE_ENV === "development" || process.env.TESTING) {
+      if (__DEV__) {
         throw new Error(
           "[react-transition]: <TransitionGroup /> children must have unique keys." +
             "The key " +

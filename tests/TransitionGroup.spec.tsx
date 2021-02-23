@@ -511,7 +511,40 @@ describe("TransitionGroup", () => {
     );
   });
 
-  it.skip("should not add move class if no move transition", () => {});
+  it("`moveTransition: false` should not add move classes", async () => {
+    const initialHTML = await render({
+      elements: [1, 3],
+      name: "transition",
+      moveTransition: false,
+    });
+    expect(initialHTML).toBe(`<div>1</div><div>3</div>`);
+
+    const enterHTML = await render({
+      elements: [1, 2, 3],
+    });
+
+    expect(enterHTML).toBe(
+      `<div>1</div>` +
+        `<div class="transition-enter-from transition-enter-active">2</div>` +
+        `<div>3</div>`
+    );
+
+    await nextFrame();
+
+    expect(await html("#app")).toBe(
+      `<div>1</div>` +
+        `<div class="transition-enter-active transition-enter-to">2</div>` +
+        `<div>3</div>`
+    );
+
+    await transitionFinish();
+
+    expect(await html("#app")).toBe(
+      `<div>1</div><div class="">2</div><div>3</div>`
+    );
+  });
+
+  // it('child appear false + transition appear true')
 
   it.todo("should not update if props and children keys are the same");
 });

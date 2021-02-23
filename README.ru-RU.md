@@ -149,7 +149,7 @@ const App = () => {
 
 ### Демонтирование элемента
 
-По дефолту, дочерний элемент будет демонтирован при исчезновении. Но если вы хотите чтобы он был скрыт с помощью `display: none`, можно передать проп `unmount={false}`.
+По дефолту, дочерний элемент будет демонтирован при исчезновении. Но если вы хотите, чтобы он был скрыт с помощью `display: none`, можно передать проп `unmount={false}`.
 
 ```jsx
 <Transition name="fade" visible={visible} unmount={false}>
@@ -173,6 +173,27 @@ const App = () => {
 
 ```jsx
 <Transition name="fade" visible={visible} appear customAppear>
+  {/* ... */}
+</Transition>
+```
+
+### Custom classes
+
+Если вы не хотите, чтобы ваши классы были сгенерированны из `name`'а, тогда вы можете передать свои классы через props'ы. Они будут иметь более высокий приоритет перед сгенерированными классами.
+
+```jsx
+<Transition
+  name="fade"
+  enterFromClass="class-1"
+  enterActiveClass="class-2"
+  enterToClass="class-3"
+  leaveFromClass="class-4"
+  leaveActiveClass="class-5"
+  leaveToClass="class-6"
+  appearFromClass="class-7"
+  appearActiveClass="class-8"
+  appearToClass="class-9"
+>
   {/* ... */}
 </Transition>
 ```
@@ -203,8 +224,6 @@ const App = () => {
 ### Анимирование элементов списка
 
 Пока мы рассматривали только анимирование одного элемента. Но что делать, если мы хотим анимировать элементы списка? Для этого есть компонент `<TransitionGroup />`. Он работает как стейт машина, которая определяет что элемент списка был добавлен/удален и передает корректные props'ы в дочерние `<Transition>` компоненты.
-
-<!-- We've been working with single elements so far. But what if you want to animate enter/leave of list items. That's where you should use `<TransitionGroup>`. It's like a state machine that detects an item addition/removal and passes correct props to `<Transition>` component. -->
 
 [Попробовать в codesandbox](https://codesandbox.io/s/transition-group-list-no-move-8ww7h)
 
@@ -398,7 +417,18 @@ const App = () => {
 +}
 ```
 
-It's really powerful as you can see. You can use it to create cool animations like this:
+### Кастомный класс
+
+Вы можете использовать кастомный класс для анимации перемещения, если не хотите использовать дефолтный. Для этого передайте prop `moveClass`.
+
+<!-- prettier-ignore -->
+```jsx
+<Transition moveClass="my-move-class">
+  {/* ... */}
+</Transition>
+```
+
+С помощью "move" класса вы можете создавать куртые анимации. Посмотрите, например, на этот пример.
 
 [Попробовать в codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
 
@@ -470,6 +500,17 @@ const App = () => {
 }
 ```
 
+### Важное замечание по поводу анимации перемещения
+
+Когда вы используете компонет `<TransitionGroup>`, он предполагает что вы хотите также анимировать перемещения элементов списка. В результате `moveClass` будет добавляться к дочерним элементам, при смене позиции. Однако если стили для этого класса не имеют транзишена, то он не будет удален (в отличии от компонета `<Transiton>`, который определяет, есть ли у элемента анимация/транзишен, и удалит все классы, если нет). Связанно это с тем что `<TransitonGroup>`, не проверяет есть ли у каждого дочернего элемента тразишен, так как это может вызвать проблемы с производительностью (для больших списков). Поэтому если вы не планируете анимировать перемещение и не хотите иметь ненужные классы на элементах - передайте prop `moveTransiton="none"`
+
+<!-- prettier-ignore -->
+```jsx
+<TransitionGroup moveTransition="none">
+  {/* ... */}
+</TransitionGroup>
+```
+
 ## API
 
 ### Transition
@@ -515,6 +556,7 @@ const App = () => {
 | name      | `string`             | `transition`         | Имя для дочерних `<Transition>` компонентов. Также используется для генерации `moveClass` props'а, если он не передан  |
 | moveClass | `string`             | `` `${name}-move` `` | Класс который будет добавлен дочерним элементам, поменявшим позицию |
 | appear    | `boolean`            | `false`              | опередляет нужно ли запускать анимацию при первоначальном рендере |
+| moveTransition  | `boolean | undefined` | `undefined` | Определяет должен ли `<TransitionGroup>` иметь move анимацию (перменешения элементов). |
 | children  | `React.ReactElement` | -                    | Компоненты `<Transition />` |
 
 ## Contributing

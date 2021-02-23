@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { __DEV__ } from "./constants";
 import { TransitionGroupContext } from "./context";
 import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import {
@@ -268,7 +269,7 @@ const Transition = (props: TransitionProps) => {
   try {
     child = Children.only(children);
   } catch {
-    if (process.env.NODE_ENV === "development" || process.env.TESTING) {
+    if (__DEV__) {
       throw new Error(
         "[react-transition]: wrong `children` passed to the <Transition> component " +
           "expected to have `ReactElement`, got " +
