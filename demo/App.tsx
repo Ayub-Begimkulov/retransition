@@ -23,6 +23,12 @@ function shuffle(array: any[]) {
 const App = () => {
   return (
     <div>
+      <div>
+        <h2>TransitionGroup (move, add, remove)</h2>
+        <NumbersList />
+        <h2>Transition Group Move</h2>
+        <Sudoku />
+      </div>
       {false && (
         <>
           <div style={{ height: 300 }}>
@@ -33,14 +39,8 @@ const App = () => {
             <h2>CSS animation</h2>
             <BasicAnimation />
           </div>
-          <div>
-            <h2>Transition Group Move</h2>
-            <Sudoku />
-          </div>
         </>
       )}
-      <h2>TransitionGroup (move, add, remove)</h2>
-      <NumbersList />
     </div>
   );
 };

@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
+import { ElementBindings } from "./constants";
 import { TransitionGroupContext } from "./context";
 import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
@@ -18,6 +19,7 @@ const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 export interface TransitionGroupProps {
   name?: string;
   appear?: boolean;
+  moveTransition?: boolean;
   moveClass?: string;
   children:
     | React.ReactElement<TransitionProps>
@@ -34,9 +36,11 @@ const TransitionGroup = ({
   children,
   name,
   appear,
+  moveTransition,
   moveClass,
 }: TransitionGroupProps) => {
   // we have to check that array didn't had any keys before calling toArray
+  // because it will add keys itself that'd be unstable
   const childrenArray = Children.toArray(children) as React.ReactElement[];
   const childrenRef = useLatest(childrenArray);
   const prevChildren = usePrevious(childrenArray);
@@ -46,6 +50,8 @@ const TransitionGroup = ({
     !prevChildren.current ||
     !areChildrenEqual(childrenArray, prevChildren.current)
   ) {
+    // children are changed, increment counter to
+    // update `TransitionGroupMemo` and run it layout effect
     shouldRunLayoutEffect.current++;
   }
 
@@ -53,6 +59,7 @@ const TransitionGroup = ({
     <TransitionGroupMemo
       name={name}
       appear={appear}
+      moveTransition={moveTransition}
       moveClass={moveClass}
       childrenRef={childrenRef}
       runEffect={shouldRunLayoutEffect.current}
@@ -64,10 +71,12 @@ const TransitionGroupMemo = memo(
   ({
     name,
     appear,
+    moveTransition,
     moveClass,
     childrenRef,
     runEffect,
   }: TransitionGroupMemoProps) => {
+    const latestProps = useLatest({ name, moveClass, moveTransition });
     const prevRunEffect = usePrevious(runEffect);
     const isMounted = useIsMounted();
 
@@ -75,10 +84,7 @@ const TransitionGroupMemo = memo(
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
-    if (
-      prevRunEffect.current !== runEffect &&
-      prevChildrenElements.current.length > 0
-    ) {
+    if (prevRunEffect.current !== runEffect) {
       prevChildrenElements.current.forEach(recordPosition);
     }
 
@@ -88,8 +94,8 @@ const TransitionGroupMemo = memo(
           return !isMounted.current;
         },
         register(el: Element) {
-          if (!(el as any).__registered) {
-            (el as any).__registered = true;
+          if (!(el as any)[ElementBindings.registered]) {
+            (el as any)[ElementBindings.registered] = true;
             newChildrenElements.current.push(el);
           }
         },
@@ -97,13 +103,15 @@ const TransitionGroupMemo = memo(
           prevChildrenElements.current = prevChildrenElements.current.filter(
             e => e !== el
           );
-          (el as any).__registered = null;
+          (el as any)[ElementBindings.registered] = null;
         },
       }),
       [isMounted]
     );
 
     useLayoutEffect(() => {
+      const { moveTransition = true, moveClass, name } = latestProps.current;
+      if (!moveTransition) return;
       const updateChildren = () => {
         if (newChildrenElements.current.length > 0) {
           prevChildrenElements.current = prevChildrenElements.current.concat(
@@ -118,40 +126,65 @@ const TransitionGroupMemo = memo(
         updateChildren();
         return;
       }
-      // 3 separate loops for performance
+      // TODO I think we don't need this code, because don't know the case
+      // where need move transition only for the part of you list
+      /* if (moveTransition === "detect") {
+        const root = childrenToMove[0].parentElement!;
+        const childAndCloneArray = childrenToMove.map(child => {
+          const clone = child.cloneNode() as HTMLElement;
+          (child as any)[ElementBindings.transitionClasses]?.forEach(
+            (c: string) => {
+              clone.classList.remove(c);
+            }
+          );
+          addClass(clone, moveCls);
+          clone.style.display = "none";
+          root.appendChild(clone);
+          return { child, clone };
+        });
+        const childrenWithTransform: Element[] = [];
+        for (let i = 0, l = childAndCloneArray.length; i < l; i++) {
+          const { clone, child } = childAndCloneArray[i];
+          if (getTransitionInfo(clone, "transition").hasTransform) {
+            childrenWithTransform.push(child);
+          }
+        }
+        childAndCloneArray.forEach(({ clone }) => {
+          root.removeChild(clone);
+        });
+        childrenToMove = childrenWithTransform;
+      } */
+
+      // separate loops for reads and writes to improve performance
       // https://stackoverflow.com/questions/19250971/why-a-tiny-reordering-of-dom-read-write-operations-causes-a-huge-performance-dif
-      childrenToMove.forEach(el => (el as any)._endCb?.());
+      childrenToMove.forEach(el =>
+        (el as any)[ElementBindings.moveCallback]?.()
+      );
       childrenToMove.forEach(recordNewPosition);
       const movedChildren = childrenToMove.filter(applyTranslation);
+
       forceReflow();
 
       movedChildren.forEach(child => {
         addClass(child, moveCls);
         (child as HTMLElement).style.transitionDuration = "";
         (child as HTMLElement).style.transform = "";
-        const endCb = ((child as any)._endCb = (e?: Event) => {
+        const endCb = ((child as any)[ElementBindings.moveCallback] = (
+          e?: Event
+        ) => {
           if (e && e.target !== child) {
             return;
           }
           if (!e || /transform$/.test((e as TransitionEvent).propertyName)) {
             child.removeEventListener("transitionend", endCb);
-            (child as any)._endCb = null;
+            (child as any)[ElementBindings.moveCallback] = null;
             removeClass(child, moveCls);
           }
         });
-        // TODO think about performance issues if using
-        // whenTransitionEnds here
         child.addEventListener("transitionend", endCb);
       });
       updateChildren();
-    }, [
-      runEffect,
-      // TODO move class and name should not cause update
-      // only the change of the children array
-      moveClass,
-      name,
-      isMounted,
-    ]);
+    }, [runEffect, latestProps, isMounted]);
 
     const childrenToRender = /*#__NOINLINE__*/ useTransitionChildren(
       childrenRef.current,
@@ -178,8 +211,8 @@ function areChildrenEqual(
 }
 
 function getProp(el: React.ReactElement, key: string, defaultValue?: any) {
-  if (!hasOwn(el.props, key)) return defaultValue;
-  return el.props[key];
+  if (hasOwn(el.props, key)) return el.props[key];
+  return defaultValue;
 }
 
 function useTransitionChildren(

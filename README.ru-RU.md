@@ -147,9 +147,19 @@ const App = () => {
 }
 ```
 
+### Тип анимации
+
+Иногда вы можете иметь CSS `transition` и `animation` на одном и том же элементе. Для того, чтобы определить завершение анимации, эта библиотека воспользуется тем типом, который имеет более длительную продолжительность. Однако это не всегда может быть тем что вы хотите. Например, у вас может быть `animation` для первоначальной отрисовки (об этом мы поговорим чуть позже) и `transition` при наведении мышкой. В таком случае вам придется передать, какой тип должен использовать компонент `<Transition>`.
+
+```jsx
+<Transition type="animation" {...props}>
+  {/* ... */}
+</Transition>
+```
+
 ### Демонтирование элемента
 
-По дефолту, дочерний элемент будет демонтирован при исчезновении. Но если вы хотите чтобы он был скрыт с помощью `display: none`, можно передать проп `unmount={false}`.
+По дефолту, дочерний элемент будет демонтирован при исчезновении. Но если вы хотите, чтобы он был скрыт с помощью `display: none`, можно передать проп `unmount={false}`.
 
 ```jsx
 <Transition name="fade" visible={visible} unmount={false}>
@@ -173,6 +183,27 @@ const App = () => {
 
 ```jsx
 <Transition name="fade" visible={visible} appear customAppear>
+  {/* ... */}
+</Transition>
+```
+
+### Custom classes
+
+Если вы не хотите, чтобы ваши классы были сгенерированы из `name`'а, тогда вы можете передать свои классы через props'ы. Они будут иметь более высокий приоритет перед сгенерированными классами.
+
+```jsx
+<Transition
+  name="fade"
+  enterFromClass="class-1"
+  enterActiveClass="class-2"
+  enterToClass="class-3"
+  leaveFromClass="class-4"
+  leaveActiveClass="class-5"
+  leaveToClass="class-6"
+  appearFromClass="class-7"
+  appearActiveClass="class-8"
+  appearToClass="class-9"
+>
   {/* ... */}
 </Transition>
 ```
@@ -203,8 +234,6 @@ const App = () => {
 ### Анимирование элементов списка
 
 Пока мы рассматривали только анимирование одного элемента. Но что делать, если мы хотим анимировать элементы списка? Для этого есть компонент `<TransitionGroup />`. Он работает как стейт машина, которая определяет что элемент списка был добавлен/удален и передает корректные props'ы в дочерние `<Transition>` компоненты.
-
-<!-- We've been working with single elements so far. But what if you want to animate enter/leave of list items. That's where you should use `<TransitionGroup>`. It's like a state machine that detects an item addition/removal and passes correct props to `<Transition>` component. -->
 
 [Попробовать в codesandbox](https://codesandbox.io/s/transition-group-list-no-move-8ww7h)
 
@@ -398,7 +427,18 @@ const App = () => {
 +}
 ```
 
-It's really powerful as you can see. You can use it to create cool animations like this:
+### Кастомный класс
+
+Вы можете использовать кастомный класс для анимации перемещения, если не хотите использовать дефолтный. Для этого передайте prop `moveClass`.
+
+<!-- prettier-ignore -->
+```jsx
+<Transition moveClass="my-move-class">
+  {/* ... */}
+</Transition>
+```
+
+С помощью "move" класса вы можете создавать крутые анимации. Посмотрите, например, на этот пример.
 
 [Попробовать в codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
 
@@ -470,6 +510,17 @@ const App = () => {
 }
 ```
 
+### Важное замечание по поводу анимации перемещения
+
+Когда вы используете компонент `<TransitionGroup>`, он предполагает что вы хотите также анимировать перемещения элементов списка. В результате `moveClass` будет добавляться к дочерним элементам, при смене позиции. Однако если стили для этого класса не имеют транзишена, то он не будет удален (в отличии от компонента `<Transiton>`, который определяет, есть ли у элемента анимация/транзишн, и удалит все классы, если нет). Связанно это с тем что `<TransitonGroup>`, не проверяет есть ли у каждого дочернего элемента транзишн, так как это может вызвать проблемы с производительностью (для больших списков). Поэтому если вы не планируете анимировать перемещение и не хотите иметь ненужные классы на элементах - передайте prop `moveTransiton="none"`
+
+<!-- prettier-ignore -->
+```jsx
+<TransitionGroup moveTransition="none">
+  {/* ... */}
+</TransitionGroup>
+```
+
 ## API
 
 ### Transition
@@ -485,12 +536,12 @@ const App = () => {
 | customAppear      | `boolean`                 | `false`                       | По дефолту анимация первоначального появления (`appear`) использует классы и ивенты анимации обычно появления (`enter`). Если вы хотите генерировать кастомные классы и использовать кастомные ивенты, передайте `true` |
 | nodeRef           | `React.MutableRef<Element \| null> \| ((node: Element) => void` | `undefined` | `<Transition />` компонент использует `ref` для получения дочернего DOM элемента. Если вы тоже хотите использовать `ref` для дочернего элемента, передайте его компоненту `<Transition>` |
 | unmount           | `boolean`                 | `true`                        | По дефолту, дочерний элемент будет демонтирован при исчезновении. Если вы хотите чтобы он был скрыт с помощью `display: none`, передайте `false`.  |
-| type              | `'animation' \| 'transition' \| undefined` | `undefined` | TODO |
+| type              | `'animation' \| 'transition' \| undefined` | `undefined` | Какой тип анимации (`transition` или `animation`) должен использоваться для определения завершения анимации. |
 | enterFromClass    | `string`                  | `` `${name}-enter-from` ``    | Класс задающий начальное состояние анимации появления. |
-| enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Класс задающий активное состояние анимации поялвения. Используйте его для определения длительности и временной функции. |
+| enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Класс задающий активное состояние анимации появления. Используйте его для определения длительности и временной функции. |
 | enterToClass      | `string`                  | `` `${name}-enter-active` ``  | Класс задающий конечное состояние анимации появления. |
 | leaveFromClass    | `string`                  | `` `${name}-leave-from` ``    | Класс задающий начальное состояние анимации исчезновения. |
-| leaveActiveClass  | `string`                  | `` `${name}-leave-active` ``  | Класс задающий активное состояние анимации ичезновения. Используйте его для определения длительности и временной функции.  |
+| leaveActiveClass  | `string`                  | `` `${name}-leave-active` ``  | Класс задающий активное состояние анимации исчезновения. Используйте его для определения длительности и временной функции.  |
 | leaveToClass      | `string`                  | `` `${name}-leave-to` ``      | Класс задающий конечное состояние анимации исчезновения. |
 | appearFromClass   | `string`                  | `` `enterFromClass` ``   | Класс задающий начальное состояние анимации первоначального появления (`appear`). По дефолту используется `enterFromClass`. Чтобы поменять `customAppear` prop. |             
 | appearActiveClass | `string`                  | `` `enterActiveClass` `` | Класс задающий активное состояние анимации первоначального появления (`appear`). Используйте его для определения длительности и временной функции. |
@@ -514,7 +565,8 @@ const App = () => {
 | --------- | -------------------- | -------------------- | --------------------------------------------------------------------------------------- |
 | name      | `string`             | `transition`         | Имя для дочерних `<Transition>` компонентов. Также используется для генерации `moveClass` props'а, если он не передан  |
 | moveClass | `string`             | `` `${name}-move` `` | Класс который будет добавлен дочерним элементам, поменявшим позицию |
-| appear    | `boolean`            | `false`              | опередляет нужно ли запускать анимацию при первоначальном рендере |
+| appear    | `boolean`            | `false`              | Определяет нужно ли запускать анимацию списка при первоначальном рендере. |
+| moveTransition  | `boolean | undefined` | `undefined` | Определяет должен ли `<TransitionGroup>` иметь move анимацию (перемещения элементов). |
 | children  | `React.ReactElement` | -                    | Компоненты `<Transition />` |
 
 ## Contributing

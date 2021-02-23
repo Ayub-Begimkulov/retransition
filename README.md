@@ -88,15 +88,15 @@ const App = () => {
 
 Let's dive deeper into this example and understand what happens under the hood.
 
-When you change the `visible` prop of the `<Transition>` component, it will show or hide the children element according to it. But it won't do it immediately. Entering and Leaving will be done in 3 steps:
+When you change the `visible` prop of the `<Transition>` component, it will show or hide the child element according to it. But it won't do it immediately. Entering and Leaving will be done in 3 steps:
 
-1. At the step first element would be inserted into the DOM if it's enter transition. `from` and `active` classes would be added.
-2. On the next frame (once the browser was able to rerender the screen and apply new styles) we remove `from` class and add `to` class. If the classes are written correctly, this should trigger a transition.
-3. Once the transition is finished, we remove `active` and `to` classes. The element would be removed from the DOM if it's a `leave` transition.
+1. At the step first element would be inserted into the DOM if it's enter transition. `fade-(enter|leave)-from` and `fade-(enter|leave)-active` classes would be added.
+2. On the next frame (once the browser was able to rerender the screen and apply new styles) we remove `fade-(enter|leave)-from` class and add `fade-(enter|leave)-to` class. If classes are written correctly, this should trigger a transition.
+3. Once the transition is finished, we remove `fade-(enter|leave)-active` and `fade-(enter|leave)-to` classes. The element would be removed from the DOM if it's a `leave` transition.
 
 ### CSS Animation
 
-Although CSS transitions are more common and simpler, there are some situations where they don't give you enough control.
+Although CSS transitions are more common and simpler, there are some situations where they don't give you enough control. That's why this library also supports CSS animations.
 
 [Try in codesandbox](https://codesandbox.io/s/css-animation-example-nroet?file=/src/App.js)
 
@@ -142,6 +142,16 @@ const App = () => {
 }
 ```
 
+### Transition type
+
+Sometimes you may want to have `transition` and `animation` on the same element. This library will pick the one that has a longer duration to detect the end of the transition. But this may not be the case in some situations. For instance, if you have animation on initial render and transition on mouseover. In these cases, you have to manually pass about which type `<Transition>` component should care about.
+
+```jsx
+<Transition type="animation" {...props}>
+  {/* ... */}
+</Transition>
+```
+
 ### Unmounting
 
 Be default your child element/component will be unmounted on leave. But if you want it to be hidden with `display: none`, you could pass `umount` prop as `false`.
@@ -164,10 +174,31 @@ By default, your transition won't run on the initial render. If you want to chan
 
 > Note that you could just pass `appear` without any value and it'd be equivalent to `appear={true}`
 
-This will result in having enter transition (it'd use enter classes and events) on initial render. But if you want custom transition for the initial render you could pass `customAppear`. `${name}-appear-from`, `${name}-appear-active` and `${name}-appear-to` classes would be generated as a result.
+This will result in having enter transition on initial render. But if you want custom transition (different classes and events) for the initial render you could pass `customAppear`. In this case `${name}-appear-from`, `${name}-appear-active` and `${name}-appear-to` classes would be generated.
 
 ```jsx
 <Transition name="fade" visible={visible} appear customAppear>
+  {/* ... */}
+</Transition>
+```
+
+### Custom classes
+
+If you don't want your classes to be generated from the name, you could pass your classes through props. They'll override generated classes.
+
+```jsx
+<Transition
+  name="fade"
+  enterFromClass="class-1"
+  enterActiveClass="class-2"
+  enterToClass="class-3"
+  leaveFromClass="class-4"
+  leaveActiveClass="class-5"
+  leaveToClass="class-6"
+  appearFromClass="class-7"
+  appearActiveClass="class-8"
+  appearToClass="class-9"
+>
   {/* ... */}
 </Transition>
 ```
@@ -195,9 +226,11 @@ This will result in having enter transition (it'd use enter classes and events) 
 </Transition>
 ```
 
-### Transition Group
+### List Transitions
 
-We've been working with single elements so far. But what if you want to animate enter/leave of list items. That's where you should use `<TransitionGroup>`. It's like a state machine that detects an item addition/removal and passes correct props to `<Transition>` component.
+<!-- TODO that it would only pass visible and appear -->
+
+We've been working with single elements so far. But what if you want to animate enter/leave of list items?. That's where you should use `<TransitionGroup>`. It's like a state machine that detects an item addition/removal and passes correct props to `<Transition>` component.
 
 [Try in codesandbox](https://codesandbox.io/s/transition-group-list-no-move-8ww7h)
 
@@ -287,7 +320,7 @@ const App = () => {
 
 > Note that you can pass a `name` to your `<TransitionGroup>` and it will be used also for its children `<Transition>` components.
 
-### TransitionGroup Move Transition
+### List Move Transition
 
 There is one problem with our previous example. When the item gets added/removed, other ones just snap into their new position. Let's see how we can fix it.
 
@@ -391,7 +424,18 @@ const App = () => {
 +}
 ```
 
-It's really powerful as you can see. You can use it to create cool animations like this:
+### Custom move class
+
+You could pass your move class if you don't want to use a generated one. Just pass a `moveClass` prop.
+
+<!-- prettier-ignore -->
+```jsx
+<Transition moveClass="my-move-class">
+  {/* ... */}
+</Transition>
+```
+
+You can use "move" class to create cool animations. Check out this example:
 
 [Try in codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
 
@@ -463,6 +507,17 @@ const App = () => {
 }
 ```
 
+### Important note about move transition
+
+When you use `<TransitionGroup>`, it assumes that you want to have a move transition. As a result, `moveClass` will be added to children, whenever they change their position. But if the styles for it don't have a transition, it won't get removed (unlike with the `<Transition>` component, which removes classes if the transition/animation is not defined). Because `<TransitionGroup>` doesn't check whether each child has transition or not, since it could be a performance bottleneck (for large lists). Therefore if you don't plan to have a move transition and don't want unnecessary classes on your elements - pass `moveTransition="none"`.
+
+<!-- prettier-ignore -->
+```jsx
+<TransitionGroup moveTransition="none">
+  {/* ... */}
+</TransitionGroup>
+```
+
 ## API
 
 ### Transition
@@ -478,7 +533,7 @@ const App = () => {
 | customAppear      | `boolean`                 | `false`                       | By default appear transition uses enter classes and events. But if you want it to generate custom classes and not use enter events, pass `true` |
 | nodeRef           | `React.MutableRef<Element \| null> \| ((node: Element) => void` | `undefined` | `<Transition />` component passes `ref` to it's children. So if you also want to use `ref` pass it to the wrapping `<Transition />` component |
 | unmount           | `boolean`                 | `true`                        | By default the child is unmounted on exit. If you prefer no unmounting (hided with `display: none`) change this to `false`. |
-| type              | `'animation' \| 'transition' \| undefined` | `undefined` | TODO |
+| type              | `'animation' \| 'transition' \| undefined` | `undefined` | Type of the transition that this component should care about |
 | enterFromClass    | `string`                  | `` `${name}-enter-from` ``    | Class that sets the starting styles of enter transition.                                                                                                   |
 | enterActiveClass  | `string`                  | `` `${name}-enter-to` ``      | Class that sets the active style of enter transition. This class can be used to define the duration, delay and easing curve for the entering transition.   |
 | enterToClass      | `string`                  | `` `${name}-enter-active` ``  | Class that sets the ending styles of enter transition.                                                                                                     |
@@ -510,6 +565,7 @@ This is a container that wraps your `<Transition>` components and performs enter
 | name      | `string`             | `transition`         | Name for your child transitions, also used to generate moveClass if it's not provided.  |
 | moveClass | `string`             | `` `${name}-move` `` | Class that would be added to children that are `moved` due to element addition/removal. |
 | appear    | `boolean`            | `false`              | if true performs appear transition for all of it's on initial render.                   |
+| moveTransition  | `boolean | undefined` | `undefined` | Determines whether `<TransitionGroup>` should have move transition. |
 | children  | `React.ReactElement` | -                    | Elements wrapped in `<Transition />` component. |
 
 ## Contributing

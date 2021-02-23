@@ -7,7 +7,7 @@
 
   &-enter-active,
   &-leave-active {
-    transition: all 5000ms ease;
+    transition: all 3000ms ease;
   }
 
   &-leave-active {
@@ -21,7 +21,7 @@
   }
 
   &-move {
-    transition: transform 500ms ease;
+    transition: transform 3000ms ease;
   }
 }
 
@@ -55,7 +55,7 @@
 .container {
   display: flex;
   flex-wrap: wrap;
-  width: 240px;
+  width: 720px;
   margin-top: 10px;
 }
 
