@@ -40,6 +40,7 @@ function createRollupConfig(outputDir, tsOptions, env, formats = {}) {
         file: path.resolve(outputDir, "index.umd.js"),
         format: "umd",
         ...umdOptions,
+        sourcemap: isTesting ? "inline" : undefined,
       },
     ].filter(Boolean),
   };
@@ -50,24 +51,23 @@ const ie11Dir = path.resolve(__dirname, "dist", "ie11");
 const testDir = path.resolve(__dirname, "tests");
 
 export default isTesting
-  ? [
-      createRollupConfig(
-        testDir,
-        {
-          tsconfigOverride: {
-            compilerOptions: {
-              // throws error about declarationDir
-              declaration: false,
-              sourceMap: true,
-              inlineSourceMap: true,
-              inlineSources: true,
-            },
+  ? createRollupConfig(
+      testDir,
+      {
+        tsconfigOverride: {
+          compilerOptions: {
+            // throws error about declarationDir
+            declaration: false,
+            sourceMap: true,
+            inlineSourceMap: true,
+            inlineSources: true,
+            removeComments: false,
           },
         },
-        "production",
-        { umd: true }
-      ),
-    ]
+      },
+      "production",
+      { umd: true }
+    )
   : [
       createRollupConfig(distDir, undefined, "production", {
         es: true,
