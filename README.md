@@ -435,7 +435,20 @@ You could pass your move class if you don't want to use a generated one. Just pa
 </Transition>
 ```
 
-You can use "move" class to create cool animations. Check out this example:
+### Important note about move transition
+
+When you use `<TransitionGroup>`, it assumes that you want to have a move transition. As a result, `moveClass` will be added to children, whenever they change their position. But if the styles for it don't have a transition, it won't get removed (unlike with the `<Transition>` component, which removes classes if the transition/animation is not defined). Because `<TransitionGroup>` doesn't check whether each child has transition or not, since it could be a performance bottleneck (for large lists). Therefore if you don't plan to have a move transition and don't want unnecessary classes on your elements - pass `moveTransition={false}`.
+
+<!-- prettier-ignore -->
+```jsx
+<TransitionGroup moveTransition={false}>
+  {/* ... */}
+</TransitionGroup>
+```
+
+### Cool example
+
+With `<TransitionGroup/>`'s `move` class you could make really cool animations. Checkout, for instance, this example:
 
 [Try in codesandbox](https://codesandbox.io/s/sudoku-example-86zxw?file=/src/App.js)
 
@@ -507,17 +520,6 @@ const App = () => {
 }
 ```
 
-### Important note about move transition
-
-When you use `<TransitionGroup>`, it assumes that you want to have a move transition. As a result, `moveClass` will be added to children, whenever they change their position. But if the styles for it don't have a transition, it won't get removed (unlike with the `<Transition>` component, which removes classes if the transition/animation is not defined). Because `<TransitionGroup>` doesn't check whether each child has transition or not, since it could be a performance bottleneck (for large lists). Therefore if you don't plan to have a move transition and don't want unnecessary classes on your elements - pass `moveTransition="none"`.
-
-<!-- prettier-ignore -->
-```jsx
-<TransitionGroup moveTransition="none">
-  {/* ... */}
-</TransitionGroup>
-```
-
 ## API
 
 ### Transition
@@ -565,7 +567,7 @@ This is a container that wraps your `<Transition>` components and performs enter
 | name      | `string`             | `transition`         | Name for your child transitions, also used to generate moveClass if it's not provided.  |
 | moveClass | `string`             | `` `${name}-move` `` | Class that would be added to children that are `moved` due to element addition/removal. |
 | appear    | `boolean`            | `false`              | if true performs appear transition for all of it's on initial render.                   |
-| moveTransition  | `boolean | undefined` | `undefined` | Determines whether `<TransitionGroup>` should have move transition. |
+| moveTransition  | `boolean \| undefined` | `undefined` | Determines whether `<TransitionGroup>` should have move transition. |
 | children  | `React.ReactElement` | -                    | Elements wrapped in `<Transition />` component. |
 
 ## Contributing
