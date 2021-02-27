@@ -1,8 +1,8 @@
 # React Transition
 
-[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/react-transition)](https://github.com/Ayub-Begimkulov/react-transition/blob/master/LICENSE)
-[![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)](https://www.npmjs.com/package/@ayub-begimkulov/react-transition)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)](https://bundlephobia.com/result?p=@ayub-begimkulov/react-transition)
+[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/retransition)](https://github.com/Ayub-Begimkulov/retransition/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/retransition)](https://www.npmjs.com/package/retransition)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/retransition)](https://bundlephobia.com/result?p=retransition)
 
 Библиотека которая помогает создавать плавные анимации ваших React компонентов.
 
@@ -24,18 +24,18 @@
 
 ## Установка
 
-На данный момент этот пакет опубликован как `@ayub-begimkulov/react-transition`. Я воспользовался этим именем так как пока не знаю как назвать эту библиотеку (если есть какие-то идеи, можно открыть issue).
+На данный момент этот пакет опубликован как `retransition`. Я воспользовался этим именем так как пока не знаю как назвать эту библиотеку (если есть какие-то идеи, можно открыть issue).
 
 npm:
 
 ```bash
-npm i @ayub-begimkulov/react-transition
+npm i retransition
 ```
 
 yarn:
 
 ```bash
-yarn add @ayub-begimkulov/react-transition
+yarn add retransition
 ```
 
 Также стоит отметить что данная библиотека использует хуки, так что версия `react` и `react-dom` должна быть 16.8.0 или выше.
@@ -48,7 +48,7 @@ yarn add @ayub-begimkulov/react-transition
 
 ```jsx
 import React, { useState } from "react";
-import { Transition } from "@ayub-begimkulov/react-transition";
+import { Transition } from "retransition";
 
 import "./index.css";
 
@@ -107,7 +107,7 @@ const App = () => {
 
 ```jsx
 import React, { useState } from "react";
-import { Transition } from "@ayub-begimkulov/react-transition";
+import { Transition } from "retransition";
 
 import "./index.css";
 
@@ -239,7 +239,7 @@ const App = () => {
 
 ```jsx
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+import { Transition, TransitionGroup } from "retransition";
 
 import "./index.css";
 
@@ -333,7 +333,7 @@ const App = () => {
 
 ```diff
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+import { Transition, TransitionGroup } from "retransition";
 +import { shuffle } from "lodash-es";
 
 import "./index.css";
@@ -457,7 +457,7 @@ const App = () => {
 
 ```jsx
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+import { Transition, TransitionGroup } from "retransition";
 import { shuffle } from "lodash-es";
 
 import "./index.css";
