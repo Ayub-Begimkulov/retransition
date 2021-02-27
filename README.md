@@ -1,4 +1,4 @@
-# React Transition
+# Retransition
 
 [![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/retransition)](https://github.com/Ayub-Begimkulov/retransition/blob/master/LICENSE)
 [![npm](https://img.shields.io/npm/v/retransition)](https://www.npmjs.com/package/retransition)

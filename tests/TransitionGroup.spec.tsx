@@ -25,8 +25,8 @@ describe("TransitionGroup", () => {
 
   //   await page().evaluate(() => {
   //     return new Promise(res => {
-  //       const { React, ReactDOM, ReactTransition } = window as any;
-  //       const { Transition, TransitionGroup } = ReactTransition;
+  //       const { React, ReactDOM, Retransition } = window as any;
+  //       const { Transition, TransitionGroup } = Retransition;
   //       const baseElement = document.querySelector("#app")!;
   //       const arr = [1, 2];
 
@@ -56,7 +56,7 @@ describe("TransitionGroup", () => {
       elements: number[];
       [key: string]: any;
     }) => {
-      const { TransitionGroup, Transition } = (window as any).ReactTransition;
+      const { TransitionGroup, Transition } = (window as any).Retransition;
       return (
         <TransitionGroup {...rest}>
           {elements.map(v => (

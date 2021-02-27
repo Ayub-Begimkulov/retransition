@@ -22,7 +22,7 @@ describe("Transition", () => {
 
   const render = makeRender(
     props => {
-      const { Transition } = (window as any).ReactTransition;
+      const { Transition } = (window as any).Retransition;
       return (
         <div id="container">
           <Transition {...props}>
@@ -739,8 +739,8 @@ describe("Transition", () => {
 
     await page().evaluate(() => {
       return new Promise(res => {
-        const { React, ReactDOM, ReactTransition } = window as any;
-        const { Transition } = ReactTransition;
+        const { React, ReactDOM, Retransition } = window as any;
+        const { Transition } = Retransition;
         const baseElement = document.querySelector("#app")!;
 
         ReactDOM.render(
