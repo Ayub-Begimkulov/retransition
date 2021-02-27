@@ -1,44 +1,7 @@
-import fs from "fs";
 import path from "path";
-import { CoverageMap, createCoverageMap } from "istanbul-lib-coverage";
 import { setupPlaywright } from "./test-utils";
 
 declare const React: typeof global.React;
-
-let coverageMap: CoverageMap;
-if (!(coverageMap = (global as any).coverageMap)) {
-  beforeAll(() => {
-    let coverage: any;
-    try {
-      coverage = fs.readFileSync(
-        path.resolve(__dirname, "..", "coverage", "coverage.json"),
-        { encoding: "utf-8" }
-      );
-      if (coverage) {
-        coverage = JSON.parse(coverage);
-      }
-    } catch (e) {
-      coverage = {};
-    }
-    coverageMap = createCoverageMap(coverage);
-    (global as any).coverageMap = coverageMap;
-  });
-
-  afterAll(() => {
-    try {
-      const outputFolder = path.resolve(__dirname, "..", "coverage");
-      if (!fs.existsSync(outputFolder)) {
-        fs.mkdirSync(outputFolder);
-      }
-      fs.writeFileSync(
-        path.resolve(outputFolder, "coverage.json"),
-        JSON.stringify(coverageMap)
-      );
-    } catch (e) {
-      console.error(e);
-    }
-  });
-}
 
 describe("Transition", () => {
   const {

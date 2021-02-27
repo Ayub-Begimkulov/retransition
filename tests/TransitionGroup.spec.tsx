@@ -1,44 +1,7 @@
 import path from "path";
 import { setupPlaywright } from "./test-utils";
-import { createCoverageMap, CoverageMap } from "istanbul-lib-coverage";
-import fs from "fs";
 
 declare const React: typeof global.React;
-
-let coverageMap: CoverageMap;
-if (!(coverageMap = (global as any).coverageMap)) {
-  beforeAll(() => {
-    let coverage: any;
-    try {
-      coverage = fs.readFileSync(
-        path.resolve(__dirname, "..", "coverage", "coverage.json"),
-        { encoding: "utf-8" }
-      );
-      if (coverage) {
-        coverage = JSON.parse(coverage);
-      }
-    } catch (e) {
-      coverage = {};
-    }
-    coverageMap = createCoverageMap(coverage);
-    (global as any).coverageMap = coverageMap;
-  });
-
-  afterAll(() => {
-    try {
-      const outputFolder = path.resolve(__dirname, "..", "coverage");
-      if (!fs.existsSync(outputFolder)) {
-        fs.mkdirSync(outputFolder);
-      }
-      fs.writeFileSync(
-        path.resolve(outputFolder, "coverage.json"),
-        JSON.stringify(coverageMap)
-      );
-    } catch (e) {
-      console.error(e);
-    }
-  });
-}
 
 describe("TransitionGroup", () => {
   const { page, nextFrame, html, timeout, makeRender } = setupPlaywright();
@@ -52,11 +15,6 @@ describe("TransitionGroup", () => {
   beforeEach(async () => {
     await page().goto(baseUrl);
     await page().waitForSelector("#app", { state: "attached" });
-  });
-
-  afterEach(async () => {
-    const coverage = await page().evaluate(() => (window as any).__coverage__);
-    coverageMap.merge(coverage);
   });
 
   /* The test is no longer relevant since we use Children.toArray
