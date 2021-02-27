@@ -5,10 +5,11 @@
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "types": "dist/types",
   "sideEffects": false,
   "scripts": {
-    "build": "rollup -c",
-    "test": "TESTING=true yarn build && nyc instrument tests/index.umd.js > tests/lib.js && jest --runInBand",
+    "build": "rollup -c && node ./write-entry.js",
+    "test": "TESTING=true rollup -c && nyc instrument tests/index.umd.js > tests/lib.js && jest --runInBand",
     "dev": "yarn --cwd demo dev",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --fix",
     "coverage": "nyc report --reporter lcov --reporter text -t coverage --report-dir coverage"
