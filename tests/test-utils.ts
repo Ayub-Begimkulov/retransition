@@ -1,7 +1,8 @@
 import playwright from "playwright";
+import fs from "fs";
+import path from "path";
+import { createCoverageMap } from "istanbul-lib-coverage";
 import { AnyObject } from "../src/types";
-
-export const timeout = (n: number) => new Promise(r => setTimeout(r, n));
 
 export function setupPlaywright() {
   let browser: playwright.Browser;
@@ -21,6 +22,30 @@ export function setupPlaywright() {
 
   afterEach(async () => {
     await browser.close();
+  });
+
+  const coverageMap = createCoverageMap({});
+  afterAll(() => {
+    try {
+      const outputFolder = path.resolve(__dirname, "..", "coverage");
+      if (!fs.existsSync(outputFolder)) {
+        fs.mkdirSync(outputFolder);
+      }
+      fs.writeFileSync(
+        path.resolve(
+          outputFolder,
+          `coverage-${Math.random().toString().slice(2)}.json`
+        ),
+        JSON.stringify(coverageMap)
+      );
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+  afterEach(async () => {
+    const coverage = await page.evaluate(() => (window as any).__coverage__);
+    coverageMap.merge(coverage);
   });
 
   function text(selector: string) {
