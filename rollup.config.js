@@ -18,7 +18,7 @@ function createRollupConfig(outputDir, tsOptions, env, formats = {}) {
   return {
     input: "src/index.ts",
     plugins: [
-      typescript(tsOptions),
+      typescript({ useTsconfigDeclarationDir: true, ...tsOptions }),
       replace({
         "process.env.NODE_ENV": JSON.stringify(env),
         "process.env.TESTING": JSON.stringify(isTesting),

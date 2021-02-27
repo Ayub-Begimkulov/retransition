@@ -5,6 +5,7 @@
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "types": "dist/types",
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c && node ./write-entry.js",
