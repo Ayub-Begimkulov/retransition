@@ -7,7 +7,7 @@ import { sizeSnapshot } from "rollup-plugin-size-snapshot";
 const isTesting = process.env.TESTING === "true";
 
 const umdOptions = {
-  name: "ReactTransition",
+  name: "Retransition",
   globals: {
     react: "React",
   },

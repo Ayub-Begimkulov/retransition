@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "@ayub-begimkulov/react-transition",
-  "version": "0.2.0",
+  "name": "retransition",
+  "version": "0.3.0",
   "description": "",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -25,11 +25,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ayub-Begimkulov/react-transition.git"
+    "url": "https://github.com/Ayub-Begimkulov/retransition.git"
   },
-  "homepage": "https://github.com/Ayub-Begimkulov/react-transition",
+  "homepage": "https://github.com/Ayub-Begimkulov/retransition",
   "bugs": {
-    "url": "https://github.com/Ayub-Begimkulov/react-transition/issues"
+    "url": "https://github.com/Ayub-Begimkulov/retransition/issues"
   },
   "files": [
     "dist"

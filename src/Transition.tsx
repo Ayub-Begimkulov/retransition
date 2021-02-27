@@ -271,7 +271,7 @@ const Transition = (props: TransitionProps) => {
   } catch {
     if (__DEV__) {
       throw new Error(
-        "[react-transition]: wrong `children` passed to the <Transition> component " +
+        "[retransition]: wrong `children` passed to the <Transition> component " +
           "expected to have `ReactElement`, got " +
           typeof children
       );

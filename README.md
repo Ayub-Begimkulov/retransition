@@ -1,8 +1,8 @@
-# React Transition
+# Retransition
 
-[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/react-transition)](https://github.com/Ayub-Begimkulov/react-transition/blob/master/LICENSE)
-[![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)](https://www.npmjs.com/package/@ayub-begimkulov/react-transition)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)](https://bundlephobia.com/result?p=@ayub-begimkulov/react-transition)
+[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/retransition)](https://github.com/Ayub-Begimkulov/retransition/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/retransition)](https://www.npmjs.com/package/retransition)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/retransition)](https://bundlephobia.com/result?p=retransition)
 
 The library that helps you create smooth transitions in your react app.
 
@@ -25,18 +25,16 @@ for `<TransitionGroup />` and it's not strict mode compatible.
 
 ## Install
 
-Right now this library is published as `@ayub-begimkulov/react-transition`. I used this name to publish the first version, but I'm still not sure how to name it (so if you how any ideas feel free to open an issue).
-
 npm:
 
 ```bash
-npm i @ayub-begimkulov/react-transition
+npm i retransition
 ```
 
 or yarn:
 
 ```bash
-yarn add @ayub-begimkulov/react-transition
+yarn add retransition
 ```
 
 Note that this library uses hooks, so you need to have `react` and `react-dom` 16.8.0 or higher.
@@ -49,7 +47,7 @@ Note that this library uses hooks, so you need to have `react` and `react-dom` 1
 
 ```jsx
 import React, { useState } from "react";
-import { Transition } from "@ayub-begimkulov/react-transition";
+import { Transition } from "retransition";
 
 import "./index.css";
 
@@ -102,7 +100,7 @@ Although CSS transitions are more common and simpler, there are some situations 
 
 ```jsx
 import React, { useState } from "react";
-import { Transition } from "@ayub-begimkulov/react-transition";
+import { Transition } from "retransition";
 
 import "./index.css";
 
@@ -236,7 +234,7 @@ We've been working with single elements so far. But what if you want to animate 
 
 ```jsx
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+import { Transition, TransitionGroup } from "retransition";
 
 import "./index.css";
 
@@ -330,7 +328,7 @@ There is one problem with our previous example. When the item gets added/removed
 
 ```diff
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+import { Transition, TransitionGroup } from "retransition";
 +import { shuffle } from "lodash-es";
 
 import "./index.css";
@@ -454,7 +452,7 @@ With `<TransitionGroup/>`'s `move` class you could make really cool animations. 
 
 ```jsx
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "@ayub-begimkulov/react-transition";
+import { Transition, TransitionGroup } from "retransition";
 import { shuffle } from "lodash-es";
 
 import "./index.css";

@@ -8,7 +8,7 @@ export function getChildMapping(children: ReactElement[]) {
     if (!child.key || hasOwn(result, child.key)) {
       if (__DEV__) {
         throw new Error(
-          "[react-transition]: <TransitionGroup /> children must have unique keys." +
+          "[retransition]: <TransitionGroup /> children must have unique keys." +
             "The key " +
             child.key +
             " is already used"

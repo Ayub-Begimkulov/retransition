@@ -1,6 +1,7 @@
 ## Version 0.3.0
 
-- `moveTransition` prop for `<TransitionGroup>` component. Useful if you don't want to have move transition.
+- added `moveTransition` prop to `<TransitionGroup>` component.
+- renamed package to `retransition`
 
 ## Version 0.2.0
 
