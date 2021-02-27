@@ -29,7 +29,7 @@ export function nextFrame(cb: () => void) {
 }
 
 export function addClass(el: Element, ...classes: string[]) {
-  return classes.forEach(cls =>
+  classes.forEach(cls =>
     cls.split(/\s+/).forEach(c => {
       c && el.classList.add(c);
     })
@@ -37,7 +37,7 @@ export function addClass(el: Element, ...classes: string[]) {
 }
 
 export function removeClass(el: Element, ...classes: string[]) {
-  return classes.forEach(cls =>
+  classes.forEach(cls =>
     cls.split(/\s+/).forEach(c => c && el.classList.remove(c))
   );
 }

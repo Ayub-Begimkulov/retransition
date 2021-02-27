@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/npm/v/@ayub-begimkulov/react-transition)](https://www.npmjs.com/package/@ayub-begimkulov/react-transition)
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/@ayub-begimkulov/react-transition)](https://bundlephobia.com/result?p=@ayub-begimkulov/react-transition)
 
-The library that helps you create smooth CSS transitions in your react app.
+The library that helps you create smooth transitions in your react app.
 
 | English | [Russian](README.ru-RU.md) |
 
