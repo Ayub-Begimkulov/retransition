@@ -56,11 +56,11 @@ export default isTesting
         {
           tsconfigOverride: {
             compilerOptions: {
+              // throws error about declarationDir
               declaration: false,
               sourceMap: true,
               inlineSourceMap: true,
               inlineSources: true,
-              removeComments: false,
             },
           },
         },
