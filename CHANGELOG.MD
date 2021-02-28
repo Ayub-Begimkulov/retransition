@@ -1,3 +1,7 @@
+## Version 0.3.1
+
+- update README.md
+
 ## Version 0.3.0
 
 - added `moveTransition` prop to `<TransitionGroup>` component.
