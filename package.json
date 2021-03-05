@@ -2,7 +2,7 @@
   "private": true,
   "name": "retransition",
   "version": "0.3.1",
-  "description": "",
+  "description": "The library that helps you create smooth transitions in your react app.",  
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "types": "dist/types",
