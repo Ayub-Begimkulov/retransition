@@ -1,11 +1,11 @@
 # Retransition
 
-[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/retransition)](https://github.com/Ayub-Begimkulov/retransition/blob/master/LICENSE)
-[![npm](https://img.shields.io/npm/v/retransition)](https://www.npmjs.com/package/retransition)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/retransition)](https://bundlephobia.com/result?p=retransition)
-[![Codecov](https://img.shields.io/codecov/c/github/Ayub-Begimkulov/retransition)](https://app.codecov.io/gh/Ayub-Begimkulov/retransition)
+[![GitHub](https://img.shields.io/github/license/Ayub-Begimkulov/retransition?style=flat-square)](https://github.com/Ayub-Begimkulov/retransition/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/retransition?style=flat-square)](https://www.npmjs.com/package/retransition)
+[![npm bundle size](https://img.shields.io/bundlephobia/minzip/retransition?style=flat-square)](https://bundlephobia.com/result?p=retransition)
+[![Codecov](https://img.shields.io/codecov/c/github/Ayub-Begimkulov/retransition?style=flat-square)](https://app.codecov.io/gh/Ayub-Begimkulov/retransition)
 
-The library that helps you create smooth transitions in your react app.
+A library that helps you create smooth transitions in your react app.
 
 | English | [Russian](README.ru-RU.md) |
 
@@ -24,7 +24,7 @@ but I didn't like some things about it. For instance, you have to pass `timeout`
 or provide your custom `addEndListener`. Also, you don't have a "move" transition
 for `<TransitionGroup />` and it's not strict mode compatible.
 
-## Install
+## Installation
 
 npm:
 
