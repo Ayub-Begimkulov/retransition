@@ -17,36 +17,6 @@ describe("TransitionGroup", () => {
     await page().waitForSelector("#app", { state: "attached" });
   });
 
-  /* The test is no longer relevant since we use Children.toArray
-    and it creates it's own keys
-  */
-  // it("warn unkeyed children", async () => {
-  //   const consoleErrorSpy = jest.spyOn(console, "error");
-
-  //   await page().evaluate(() => {
-  //     return new Promise(res => {
-  //       const { React, ReactDOM, Retransition } = window as any;
-  //       const { Transition, TransitionGroup } = Retransition;
-  //       const baseElement = document.querySelector("#app")!;
-  //       const arr = [1, 2];
-
-  //       ReactDOM.render(
-  //         <TransitionGroup>
-  //           {arr.map(v => (
-  //             <Transition>
-  //               <div id="test">{v}</div>
-  //             </Transition>
-  //           ))}
-  //         </TransitionGroup>,
-  //         baseElement,
-  //         res
-  //       );
-  //     });
-  //   });
-
-  //   expect(consoleErrorSpy).toBeCalledTimes(1);
-  // });
-
   const render = makeRender(
     ({
       elements,
@@ -500,6 +470,68 @@ describe("TransitionGroup", () => {
     expect(await html("#app")).toBe(
       `<div>1</div><div class="">2</div><div>3</div>`
     );
+  });
+
+  it("should warn unkeyed children", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error");
+    const message = await page().evaluate(() => {
+      return new Promise(res => {
+        const { React, ReactDOM, Retransition } = window as any;
+        const { Transition, TransitionGroup } = Retransition;
+        const baseElement = document.querySelector("#app")!;
+        const arr = [1, 2];
+        try {
+          ReactDOM.render(
+            <TransitionGroup>
+              {arr.map(v => (
+                <Transition>
+                  <div id="test">{v}</div>
+                </Transition>
+              ))}
+            </TransitionGroup>,
+            baseElement
+          );
+        } catch (e) {
+          res(e.message);
+        }
+      });
+    });
+
+    expect(message).toBe(
+      "[retransition]: <TransitionGroup /> children must have unique keys."
+    );
+    expect(consoleErrorSpy).toBeCalled();
+  });
+
+  it("should warn duplicate keys children", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error");
+    /* const message =  */ await page().evaluate(() => {
+      return new Promise(res => {
+        const { React, ReactDOM, Retransition } = window as any;
+        const { Transition, TransitionGroup } = Retransition;
+        const baseElement = document.querySelector("#app")!;
+        const arr = [1, 1];
+        try {
+          ReactDOM.render(
+            <TransitionGroup>
+              {arr.map(v => (
+                <Transition key={v}>
+                  <div id="test">{v}</div>
+                </Transition>
+              ))}
+            </TransitionGroup>,
+            baseElement
+          );
+        } catch (e) {
+          res(e.message);
+        }
+      });
+    });
+
+    // expect(message).toBe(
+    //   "[retransition]: <TransitionGroup /> children must have unique keys."
+    // );
+    expect(consoleErrorSpy).toBeCalled();
   });
 
   // it('child appear false + transition appear true')

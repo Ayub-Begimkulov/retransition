@@ -1,30 +1,18 @@
 import { ReactElement } from "react";
 import { hasOwn } from ".";
-import { __DEV__ } from "../constants";
+
+type ChildMapping = Record<string, ReactElement>;
 
 export function getChildMapping(children: ReactElement[]) {
-  const result = {} as Record<string, ReactElement>;
+  const result: ChildMapping = {};
   children.forEach(child => {
-    if (!child.key || hasOwn(result, child.key)) {
-      if (__DEV__) {
-        throw new Error(
-          "[retransition]: <TransitionGroup /> children must have unique keys." +
-            "The key " +
-            child.key +
-            " is already used"
-        );
-      }
-      return;
-    }
-    result[child.key] = child;
+    // at this point we can be sure that children have keys
+    result[child.key!] = child;
   });
   return result;
 }
 
-export function mergeChildMappings(
-  prev: Record<string, ReactElement> = {},
-  next: Record<string, ReactElement> = {}
-) {
+export function mergeChildMappings(prev: ChildMapping, next: ChildMapping) {
   function getValueForKey(key: string) {
     return hasOwn(next, key) ? next[key] : prev[key];
   }
@@ -46,7 +34,7 @@ export function mergeChildMappings(
   }
 
   let i;
-  const childMapping: Record<string, ReactElement> = {};
+  const childMapping: ChildMapping = {};
   for (const nextKey in next) {
     if (nextKeysPending[nextKey]) {
       for (i = 0; i < nextKeysPending[nextKey].length; i++) {

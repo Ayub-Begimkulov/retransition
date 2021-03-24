@@ -226,9 +226,12 @@ const Transition = (props: TransitionProps) => {
       setLocalVisible(true);
     } else if (el) {
       if (!isMounted.current) {
-        // add display none to element if the component
-        // isn't mounted but has `visible` prop set to `false`
+        // it's not possible that we enter this branch with `unmount: true`
+        // because in this case the element wouldn't be rendered to the dom
+        /* istanbul ignore else */
         if (latestProps.current.unmount === false) {
+          // add display none to element if the component
+          // isn't mounted but has `visible` prop set to `false`.
           initialDisplay.current = (el as HTMLElement).style.display;
           (el as HTMLElement).style.display = "none";
         }

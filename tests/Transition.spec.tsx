@@ -754,6 +754,113 @@ describe("Transition", () => {
     expect(consoleErrorSpy).toBeCalled();
   });
 
+  it("should work with refs", async () => {
+    // ref mount
+    let passed = await page().evaluate(() => {
+      return new Promise(res => {
+        const { React, ReactDOM, Retransition } = window as any;
+        const { Transition } = Retransition;
+        const baseElement = document.querySelector("#app")!;
+        let ref: any;
+        const Component = () => {
+          ref = React.useRef(null);
+          React.useEffect(() => {
+            if (ref.current instanceof HTMLElement) {
+              return res(true);
+            }
+            res(false);
+          }, []);
+          return (
+            <Transition visible={true} nodeRef={ref}>
+              <div>Hello world</div>
+            </Transition>
+          );
+        };
+        ReactDOM.render(<Component />, baseElement);
+      });
+    });
+    expect(passed).toBe(true);
+    // ref unmount
+    passed = await page().evaluate(() => {
+      return new Promise(res => {
+        const { React, ReactDOM, Retransition } = window as any;
+        const { Transition } = Retransition;
+        const baseElement = document.querySelector("#app")!;
+        let ref: any;
+        const Component = ({ visible = true }) => {
+          ref = React.useRef(null);
+          return visible ? (
+            <Transition visible={true} nodeRef={ref}>
+              <div>Hello world</div>
+            </Transition>
+          ) : null;
+        };
+        ReactDOM.render(<Component />, baseElement, () => {
+          if (!(ref.current instanceof HTMLElement)) {
+            throw new Error("didn't assigned ref");
+          }
+          ReactDOM.render(<Component visible={false} />, baseElement, () => {
+            // the ref was cleanedup
+            if (ref.current === null) {
+              return res(true);
+            }
+            res(false);
+          });
+        });
+      });
+    });
+    expect(passed).toBe(true);
+  });
+
+  it.skip("should not show error about unmounted component state modification", async () => {
+    const consoleErrorSpy = jest.spyOn(console, "error");
+
+    await page().evaluate(() => {
+      return new Promise(res => {
+        const { React, ReactDOM, Retransition } = window as any;
+        const { Transition } = Retransition;
+        const baseElement = document.querySelector("#app")!;
+        // const original = console.error.bind(console);
+        // console.error = function (...args: any[]) {
+        //   args.forEach(arg =>
+        //     arg instanceof Error ? console.log(arg.message) : console.log(arg)
+        //   );
+        //   original(...args);
+        // };
+        const Component = () => {
+          const [visible, setVisible] = React.useState(true);
+          const [renderNull, setRenderNull] = React.useState(false);
+
+          React.useEffect(() => {
+            // will run leave animation
+            setVisible(false);
+            window.setTimeout(() => {
+              // should trigger leave animation
+              setRenderNull(true);
+              setTimeout(() => {
+                res(undefined);
+              }, 100);
+            }, 25);
+          }, []);
+
+          if (renderNull) {
+            return null;
+          }
+
+          return (
+            <Transition visible={visible} name="test">
+              <div>Hello world</div>
+            </Transition>
+          );
+        };
+
+        ReactDOM.render(<Component />, baseElement);
+      });
+    });
+
+    expect(consoleErrorSpy).not.toBeCalled();
+  });
+
   it.todo(
     "`unmount: false, visible: false` shouldn't run enter animation on initial render"
     // async () => {}

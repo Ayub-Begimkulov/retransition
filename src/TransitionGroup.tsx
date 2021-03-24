@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import { ElementBindings } from "./constants";
+import { ElementBindings, __DEV__ } from "./constants";
 import { TransitionGroupContext } from "./context";
 import { useIsMounted, useLatest, usePrevious } from "./hooks";
 import { TransitionProps } from "./Transition";
@@ -41,6 +41,24 @@ const TransitionGroup = ({
 }: TransitionGroupProps) => {
   // we have to check that array didn't had any keys before calling toArray
   // because it will add keys itself that'd be unstable
+  if (__DEV__) {
+    const seen = new Set();
+    Children.forEach(children, child => {
+      if (!child.key) {
+        throw new Error(
+          "[retransition]: <TransitionGroup /> children must have unique keys."
+        );
+      }
+      if (seen.has(child.key)) {
+        throw new Error(
+          "[retransition]: Duplicate key " +
+            child.key +
+            ". <TransitionGroup /> children must have unique keys."
+        );
+      }
+      seen.add(child.key);
+    });
+  }
   const childrenArray = Children.toArray(children) as React.ReactElement[];
   const childrenRef = useLatest(childrenArray);
   const prevChildren = usePrevious(childrenArray);
@@ -126,35 +144,6 @@ const TransitionGroupMemo = memo(
         updateChildren();
         return;
       }
-      // TODO I think we don't need this code, because don't know the case
-      // where need move transition only for the part of you list
-      /* if (moveTransition === "detect") {
-        const root = childrenToMove[0].parentElement!;
-        const childAndCloneArray = childrenToMove.map(child => {
-          const clone = child.cloneNode() as HTMLElement;
-          (child as any)[ElementBindings.transitionClasses]?.forEach(
-            (c: string) => {
-              clone.classList.remove(c);
-            }
-          );
-          addClass(clone, moveCls);
-          clone.style.display = "none";
-          root.appendChild(clone);
-          return { child, clone };
-        });
-        const childrenWithTransform: Element[] = [];
-        for (let i = 0, l = childAndCloneArray.length; i < l; i++) {
-          const { clone, child } = childAndCloneArray[i];
-          if (getTransitionInfo(clone, "transition").hasTransform) {
-            childrenWithTransform.push(child);
-          }
-        }
-        childAndCloneArray.forEach(({ clone }) => {
-          root.removeChild(clone);
-        });
-        childrenToMove = childrenWithTransform;
-      } */
-
       // separate loops for reads and writes to improve performance
       // https://stackoverflow.com/questions/19250971/why-a-tiny-reordering-of-dom-read-write-operations-causes-a-huge-performance-dif
       childrenToMove.forEach(el =>
