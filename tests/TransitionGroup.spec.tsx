@@ -534,7 +534,7 @@ describe("TransitionGroup", () => {
     expect(consoleErrorSpy).toBeCalled();
   });
 
-  // it('child appear false + transition appear true')
+  it("should correctly update children", async () => {});
 
   it.todo("should not update if props and children keys are the same");
 });
