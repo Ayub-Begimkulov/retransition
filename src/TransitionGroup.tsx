@@ -58,15 +58,17 @@ const TransitionGroup = memo(
     const childrenArray = Children.toArray(children) as React.ReactElement[];
     const prevChildren = usePrevious(childrenArray);
     const runEffect = useRef(0);
-    const prevRunEffect = usePrevious(runEffect);
+    // const prevRunEffect = usePrevious(runEffect.current);
+    let shouldRecordPosition = false;
 
     if (
       !prevChildren.current ||
       !areChildrenEqual(childrenArray, prevChildren.current)
     ) {
-      // children are changed, increment counter to
+      // children are changed (), increment counter to
       // update `TransitionGroupMemo` and run it layout effect
       runEffect.current++;
+      shouldRecordPosition = true;
     }
 
     const latestProps = useLatest({ name, moveClass, moveTransition });
@@ -76,7 +78,8 @@ const TransitionGroup = memo(
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
-    if (prevRunEffect.current !== runEffect) {
+    if (shouldRecordPosition) {
+      // only record positions if children has changed
       prevChildrenElements.current.forEach(recordPosition);
     }
 
@@ -147,7 +150,7 @@ const TransitionGroup = memo(
         child.addEventListener("transitionend", endCb);
       });
       updateChildren();
-    }, [runEffect, latestProps, isMounted]);
+    }, [runEffect.current, latestProps, isMounted]);
 
     const childrenToRender = /*#__NOINLINE__*/ useTransitionChildren(
       childrenArray,
