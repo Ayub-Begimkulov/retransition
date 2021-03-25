@@ -54,9 +54,16 @@ const TransitionGroup = memo(
         seen.add(child.key);
       });
     }
+    const latestProps = useLatest({ name, moveClass, moveTransition });
+    const isMounted = useIsMounted();
 
     const childrenArray = Children.toArray(children) as React.ReactElement[];
     const prevChildren = usePrevious(childrenArray);
+
+    // does having `newChildrenElements` is helpful?
+    const newChildrenElements = useRef<Element[]>([]);
+    const prevChildrenElements = useRef<Element[]>([]);
+
     const runEffect = useRef(0);
     // const prevRunEffect = usePrevious(runEffect.current);
     let shouldRecordPosition = false;
@@ -68,18 +75,11 @@ const TransitionGroup = memo(
       // children are changed (), increment counter to
       // update `TransitionGroupMemo` and run it layout effect
       runEffect.current++;
+      // only record positions if children has changed
       shouldRecordPosition = true;
     }
 
-    const latestProps = useLatest({ name, moveClass, moveTransition });
-    const isMounted = useIsMounted();
-
-    // TODO does having `newChildrenElements` is helpful?
-    const newChildrenElements = useRef<Element[]>([]);
-    const prevChildrenElements = useRef<Element[]>([]);
-
     if (shouldRecordPosition) {
-      // only record positions if children has changed
       prevChildrenElements.current.forEach(recordPosition);
     }
 
