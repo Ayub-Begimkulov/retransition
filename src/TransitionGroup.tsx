@@ -26,83 +26,60 @@ export interface TransitionGroupProps {
     | React.ReactElement<TransitionProps>[];
 }
 
-interface TransitionGroupMemoProps
-  extends Omit<TransitionGroupProps, "children"> {
-  childrenRef: React.MutableRefObject<React.ReactElement[]>;
-  runEffect: number;
-}
-
-const TransitionGroup = ({
-  children,
-  name,
-  appear,
-  moveTransition,
-  moveClass,
-}: TransitionGroupProps) => {
-  // we have to check that array didn't had any keys before calling toArray
-  // because it will add keys itself that'd be unstable
-  if (__DEV__) {
-    const seen = new Set();
-    Children.forEach(children, child => {
-      if (!child.key) {
-        throw new Error(
-          "[retransition]: <TransitionGroup /> children must have unique keys."
-        );
-      }
-      if (seen.has(child.key)) {
-        throw new Error(
-          "[retransition]: Duplicate key " +
-            child.key +
-            ". <TransitionGroup /> children must have unique keys."
-        );
-      }
-      seen.add(child.key);
-    });
-  }
-  const childrenArray = Children.toArray(children) as React.ReactElement[];
-  const childrenRef = useLatest(childrenArray);
-  const prevChildren = usePrevious(childrenArray);
-  const shouldRunLayoutEffect = useRef(0);
-
-  if (
-    !prevChildren.current ||
-    !areChildrenEqual(childrenArray, prevChildren.current)
-  ) {
-    // children are changed, increment counter to
-    // update `TransitionGroupMemo` and run it layout effect
-    shouldRunLayoutEffect.current++;
-  }
-
-  return (
-    <TransitionGroupMemo
-      name={name}
-      appear={appear}
-      moveTransition={moveTransition}
-      moveClass={moveClass}
-      childrenRef={childrenRef}
-      runEffect={shouldRunLayoutEffect.current}
-    />
-  );
-};
-
-const TransitionGroupMemo = memo(
+const TransitionGroup = memo(
   ({
+    children,
     name,
     appear,
     moveTransition,
     moveClass,
-    childrenRef,
-    runEffect,
-  }: TransitionGroupMemoProps) => {
+  }: TransitionGroupProps) => {
+    // we have to check that array didn't had any keys before calling toArray
+    // because it will add keys itself that'd be unstable
+    if (__DEV__) {
+      const seen = new Set();
+      Children.forEach(children, child => {
+        if (!child.key) {
+          throw new Error(
+            "[retransition]: <TransitionGroup /> children must have unique keys."
+          );
+        }
+        if (seen.has(child.key)) {
+          throw new Error(
+            "[retransition]: Duplicate key " +
+              child.key +
+              ". <TransitionGroup /> children must have unique keys."
+          );
+        }
+        seen.add(child.key);
+      });
+    }
     const latestProps = useLatest({ name, moveClass, moveTransition });
-    const prevRunEffect = usePrevious(runEffect);
     const isMounted = useIsMounted();
 
-    // TODO does having `newChildrenElements` is helpful?
+    const childrenArray = Children.toArray(children) as React.ReactElement[];
+    const prevChildren = usePrevious(childrenArray);
+
+    // does having `newChildrenElements` is helpful?
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
-    if (prevRunEffect.current !== runEffect) {
+    const runEffect = useRef(0);
+    // const prevRunEffect = usePrevious(runEffect.current);
+    let shouldRecordPosition = false;
+
+    if (
+      !prevChildren.current ||
+      !areChildrenEqual(childrenArray, prevChildren.current)
+    ) {
+      // children are changed (), increment counter to
+      // update `TransitionGroupMemo` and run it layout effect
+      runEffect.current++;
+      // only record positions if children has changed
+      shouldRecordPosition = true;
+    }
+
+    if (shouldRecordPosition) {
       prevChildrenElements.current.forEach(recordPosition);
     }
 
@@ -173,10 +150,10 @@ const TransitionGroupMemo = memo(
         child.addEventListener("transitionend", endCb);
       });
       updateChildren();
-    }, [runEffect, latestProps, isMounted]);
+    }, [runEffect.current, latestProps, isMounted]);
 
     const childrenToRender = /*#__NOINLINE__*/ useTransitionChildren(
-      childrenRef.current,
+      childrenArray,
       appear,
       name
     );
