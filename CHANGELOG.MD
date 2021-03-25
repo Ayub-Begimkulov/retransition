@@ -1,3 +1,9 @@
+## Version 0.4.0
+
+### Fixed:
+
+- Incorrect children updates in `<TransitionGroup>` [#22](https://github.com/Ayub-Begimkulov/retransition/issues/22)
+
 ## Version 0.3.1
 
 - update README.md
