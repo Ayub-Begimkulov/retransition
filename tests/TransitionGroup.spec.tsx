@@ -38,7 +38,6 @@ describe("TransitionGroup", () => {
       );
     },
     res => {
-      debugger;
       return res(document.querySelector("#app")?.innerHTML);
     }
   );
@@ -534,7 +533,50 @@ describe("TransitionGroup", () => {
     expect(consoleErrorSpy).toBeCalled();
   });
 
-  it("should correctly update children", async () => {});
+  it("should correctly update children", async () => {
+    const render = makeRender(
+      ({
+        elements,
+        name,
+      }: {
+        elements: { id: number; title: string }[];
+        name: string;
+      }) => {
+        const { TransitionGroup, Transition } = (window as any).Retransition;
+        return (
+          <TransitionGroup name={name}>
+            {elements.map(v => (
+              <Transition key={v.id}>
+                <div>{v.title}</div>
+              </Transition>
+            ))}
+          </TransitionGroup>
+        );
+      },
+      res => {
+        return res(document.querySelector("#app")?.innerHTML);
+      }
+    );
+    const initialHTML = await render({
+      name: "test",
+      elements: [
+        { id: 1, title: "first" },
+        { id: 2, title: "second" },
+      ],
+    });
+    expect(initialHTML).toBe(`<div>first</div>` + `<div>second</div>`);
+
+    const updatedHTML = await render({
+      name: "test",
+      elements: [
+        { id: 1, title: "first one" },
+        { id: 2, title: "second" },
+      ],
+    });
+
+    expect(updatedHTML).toBe(`<div>first one</div>` + `<div>second</div>`);
+  });
 
   it.todo("should not update if props and children keys are the same");
+  it.todo("should not run animation if children have the same order");
 });

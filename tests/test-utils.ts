@@ -115,7 +115,9 @@ export function setupPlaywright() {
         ({ fn, onRenderString, serializableProps, keys }) => {
           const render = new Function("return " + fn)();
           const onRender = new Function("return " + onRenderString)();
-          const { ReactDOM } = window as any;
+
+          const w: any = window;
+          const { ReactDOM } = w;
           const baseElement = document.querySelector("#app")!;
 
           const propsToPass = keys.reduce((acc: AnyObject, key) => {
@@ -124,20 +126,18 @@ export function setupPlaywright() {
             acc[key] = serializableProps.hasOwnProperty(key)
               ? serializableProps[key]
               : () => {
-                  (window as any)[key]();
+                  w[key]();
                 };
             return acc;
           }, {});
 
-          (window as any).lastProps = {
-            ...(window as any).lastProps,
+          w.lastProps = {
+            ...w.lastProps,
             ...propsToPass,
           };
           return new Promise(res => {
-            ReactDOM.render(
-              render((window as any).lastProps),
-              baseElement,
-              () => onRender(res)
+            ReactDOM.render(render(w.lastProps), baseElement, () =>
+              onRender(res)
             );
           });
         },
