@@ -1,3 +1,9 @@
+## Version 0.4.1
+
+### Fixed:
+
+- Auto-import from incorrect directory when using with TypeScript
+
 ## Version 0.4.0
 
 ### Fixed:
