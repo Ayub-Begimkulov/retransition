@@ -8,7 +8,7 @@
   "types": "dist/types",
   "sideEffects": false,
   "scripts": {
-    "build": "rollup -c && node ./write-entry.js",
+    "build": "rimraf dist && rollup -c && node ./write-entry.js",
     "test": "TESTING=true rollup -c && nyc instrument tests/index.umd.js > tests/lib.js && jest --runInBand",
     "test:coverage": "rimraf coverage && COVERAGE=true yarn test && yarn coverage",
     "dev": "yarn --cwd demo dev",

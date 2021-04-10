@@ -754,61 +754,73 @@ describe("Transition", () => {
     expect(consoleErrorSpy).toBeCalled();
   });
 
-  it("should work with refs", async () => {
+  it.each(["object", "function"])("should work with %s refs", async refType => {
     // ref mount
-    let passed = await page().evaluate(() => {
-      return new Promise(res => {
-        const { React, ReactDOM, Retransition } = window as any;
-        const { Transition } = Retransition;
-        const baseElement = document.querySelector("#app")!;
-        let ref: any;
-        const Component = () => {
-          ref = React.useRef(null);
-          React.useEffect(() => {
-            if (ref.current instanceof HTMLElement) {
-              return res(true);
-            }
-            res(false);
-          }, []);
-          return (
-            <Transition visible={true} nodeRef={ref}>
-              <div>Hello world</div>
-            </Transition>
-          );
-        };
-        ReactDOM.render(<Component />, baseElement);
-      });
-    });
+    let passed = await page().evaluate(
+      ({ refType }) => {
+        return new Promise(res => {
+          const { React, ReactDOM, Retransition } = window as any;
+          const { Transition } = Retransition;
+          const baseElement = document.querySelector("#app")!;
+          let ref: any;
+          const Component = () => {
+            ref =
+              refType === "object"
+                ? React.useRef(null)
+                : (el: any) => (ref = { current: el });
+            React.useEffect(() => {
+              if (ref.current instanceof HTMLElement) {
+                return res(true);
+              }
+              res(false);
+            }, []);
+            return (
+              <Transition visible={true} nodeRef={ref}>
+                <div>Hello world</div>
+              </Transition>
+            );
+          };
+          ReactDOM.render(<Component />, baseElement);
+        });
+      },
+      { refType }
+    );
     expect(passed).toBe(true);
     // ref unmount
-    passed = await page().evaluate(() => {
-      return new Promise(res => {
-        const { React, ReactDOM, Retransition } = window as any;
-        const { Transition } = Retransition;
-        const baseElement = document.querySelector("#app")!;
-        let ref: any;
-        const Component = ({ visible = true }) => {
-          ref = React.useRef(null);
-          return visible ? (
-            <Transition visible={true} nodeRef={ref}>
-              <div>Hello world</div>
-            </Transition>
-          ) : null;
-        };
-        ReactDOM.render(<Component />, baseElement, () => {
-          if (!(ref.current instanceof HTMLElement)) {
-            throw new Error("didn't assigned ref");
-          }
-          ReactDOM.render(<Component visible={false} />, baseElement, () => {
-            // the ref was cleanedup
-            if (ref.current === null) {
-              return res(true);
+    passed = await page().evaluate(
+      ({ refType }) => {
+        return new Promise(res => {
+          const { React, ReactDOM, Retransition } = window as any;
+          const { Transition } = Retransition;
+          const baseElement = document.querySelector("#app")!;
+          let ref: any;
+          const Component = ({ visible = true }) => {
+            ref =
+              refType === "object"
+                ? React.useRef(null)
+                : (el: any) => (ref = { current: el });
+            return visible ? (
+              <Transition visible={true} nodeRef={ref}>
+                <div>Hello world</div>
+              </Transition>
+            ) : null;
+          };
+          ReactDOM.render(<Component />, baseElement, () => {
+            if (!(ref.current instanceof HTMLElement)) {
+              throw new Error("didn't assigned ref");
             }
-            res(false);
+            ReactDOM.render(<Component visible={false} />, baseElement, () => {
+              // the ref was cleanedup
+              if (ref.current === null) {
+                return res(true);
+              }
+              res(false);
+            });
           });
         });
-      });
-    });
+      },
+      { refType }
+    );
     expect(passed).toBe(true);
   });
 

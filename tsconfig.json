@@ -6,7 +6,7 @@
     "allowJs": false,
     "jsx": "react",
     "declaration": true,
-    "declarationDir": "dist/types",
+    // "declarationDir": "dist/types",
     "sourceMap": true,
     "strict": true,
     "noUnusedLocals": true,
