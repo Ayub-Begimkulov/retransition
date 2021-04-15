@@ -1,11 +1,10 @@
 {
-  "private": false,
+  "private": true,
   "name": "retransition",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "A library that helps you create smooth transitions in your react app.",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
-  "types": "dist/",
   "sideEffects": false,
   "scripts": {
     "build": "rimraf dist && rollup -c && node ./write-entry.js",
