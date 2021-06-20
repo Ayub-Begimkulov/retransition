@@ -13,6 +13,10 @@ import { TransitionProps } from "./Transition";
 import { addClass, combine, hasOwn, removeClass } from "./utils";
 import { getChildMapping, mergeChildMappings } from "./utils/children";
 
+interface TransitionCloneProps extends Omit<TransitionProps, "children"> {
+  key: React.Key;
+}
+
 const positionMap = new WeakMap<Element, { top: number; left: number }>();
 const newPositionMap = new WeakMap<Element, { top: number; left: number }>();
 
@@ -60,19 +64,18 @@ const TransitionGroup = memo(
     const childrenArray = Children.toArray(children) as React.ReactElement[];
     const prevChildren = usePrevious(childrenArray);
 
-    // does having `newChildrenElements` is helpful?
+    // is it helpful to have `newChildrenElements`?
     const newChildrenElements = useRef<Element[]>([]);
     const prevChildrenElements = useRef<Element[]>([]);
 
     const runEffect = useRef(0);
-    // const prevRunEffect = usePrevious(runEffect.current);
     let shouldRecordPosition = false;
 
     if (
       !prevChildren.current ||
       !areChildrenEqual(childrenArray, prevChildren.current)
     ) {
-      // children are changed (), increment counter to
+      // children are changed, increment counter to
       // update `TransitionGroupMemo` and run it layout effect
       runEffect.current++;
       // only record positions if children has changed
@@ -187,9 +190,8 @@ function useTransitionChildren(
   name?: string
 ) {
   const currentChildren = getChildMapping(children);
-  const prevChildrenMapping = useRef<Record<string, React.ReactElement> | null>(
-    null
-  );
+  const prevChildrenMapping =
+    useRef<Record<string, React.ReactElement> | null>(null);
 
   const newChildren = currentChildren;
   const prevChildren = prevChildrenMapping.current;
@@ -232,29 +234,22 @@ function useTransitionChildren(
             name: getProp(prevChildren[key], "name", name),
           })
         );
-      } else if (isNew) {
-        // new item
-        result.push(
-          cloneElement(newChildren[key], {
-            key,
-            visible: true,
-            // passing appear true, because without it
-            // we won't get enter transition
-            // TODO think about the situation where
-            // it could lead to bugs
-            appear: true,
-            name: getProp(newChildren[key], "name", name),
-          })
-        );
       } else {
-        // old item
-        result.push(
-          cloneElement(newChildren[key], {
-            key,
-            visible: true,
-            name: getProp(newChildren[key], "name", name),
-          })
-        );
+        // new or old item
+        const props: TransitionCloneProps = {
+          key,
+          visible: true,
+          name: getProp(newChildren[key], "name", name),
+        };
+        if (isNew) {
+          // passing appear true, because without it
+          // we won't get enter transition
+          // TODO think about the situation where
+          // it could lead to bugs
+          props.appear = true;
+        }
+
+        result.push(cloneElement(newChildren[key], props));
       }
     }
   }
@@ -272,6 +267,7 @@ function recordNewPosition(el: Element) {
 function applyTranslation(c: Element) {
   const oldPos = positionMap.get(c);
   const newPos = newPositionMap.get(c);
+  // istanbul-ignore if
   if (!oldPos || !newPos) return;
   const dx = oldPos.left - newPos.left;
   const dy = oldPos.top - newPos.top;

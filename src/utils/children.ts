@@ -33,11 +33,11 @@ export function mergeChildMappings(prev: ChildMapping, next: ChildMapping) {
     }
   }
 
-  let i;
+  let i, l;
   const childMapping: ChildMapping = {};
   for (const nextKey in next) {
     if (nextKeysPending[nextKey]) {
-      for (i = 0; i < nextKeysPending[nextKey].length; i++) {
+      for (i = 0, l = nextKeysPending[nextKey].length; i < l; i++) {
         const pendingNextKey = nextKeysPending[nextKey][i];
         childMapping[pendingNextKey] = getValueForKey(pendingNextKey);
       }
@@ -46,7 +46,7 @@ export function mergeChildMappings(prev: ChildMapping, next: ChildMapping) {
   }
 
   // Finally, add the keys which didn't appear before any key in `next`
-  for (i = 0; i < pendingKeys.length; i++) {
+  for (i = 0, l = pendingKeys.length; i < l; i++) {
     childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
   }
 
