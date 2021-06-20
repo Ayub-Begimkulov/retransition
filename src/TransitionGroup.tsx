@@ -169,14 +169,18 @@ const TransitionGroup = memo(
   }
 );
 
+// check whether the children are the same
+// using keys
 function areChildrenEqual(
   arr1: React.ReactElement[],
   arr2: React.ReactElement[]
 ) {
-  return (
-    arr1.length === arr2.length &&
-    arr1.every((item, i) => item.key === arr2[i].key)
-  );
+  if (arr1 === arr2) return true;
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0, l = arr1.length; i < l; i++) {
+    if (arr1[i].key !== arr2[i].key) return false;
+  }
+  return true;
 }
 
 function getProp(el: React.ReactElement, key: string, defaultValue?: any) {
