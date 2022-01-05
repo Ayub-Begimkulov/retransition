@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { Transition, TransitionGroup } from "../src";
+import { Transition, TransitionGroup } from "..";
+import "./style.css";
 
-import "./index.scss";
+export default {
+  title: "Components/TransitionGroup",
+  component: TransitionGroup,
+};
 
 function shuffle(array: any[]) {
   const length = array == null ? 0 : array.length;
@@ -20,64 +24,13 @@ function shuffle(array: any[]) {
   return result;
 }
 
-const App = () => {
-  return (
-    <div>
-      <div>
-        <h2>TransitionGroup (move, add, remove)</h2>
-        <NumbersList />
-        <h2>Transition Group Move</h2>
-        <Sudoku />
-      </div>
-      {false && (
-        <>
-          <div style={{ height: 300 }}>
-            <h2>CSS transition</h2>
-            <Basic />
-          </div>
-          <div style={{ height: 300 }}>
-            <h2>CSS animation</h2>
-            <BasicAnimation />
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
-
-const Basic = () => {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <>
-      <button onClick={() => setVisible(v => !v)}>Toggle</button>
-      <Transition visible={visible} name="fade">
-        <div style={{ height: 200, width: 200, background: "black" }}></div>
-      </Transition>
-    </>
-  );
-};
-
-const BasicAnimation = () => {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <>
-      <button onClick={() => setVisible(v => !v)}>Toggle</button>
-      <Transition visible={visible} name="fade-animation">
-        <div style={{ height: 200, width: 200, background: "black" }}></div>
-      </Transition>
-    </>
-  );
-};
-
 const getRandomIndex = (length: number) => Math.floor(Math.random() * length);
 
 const initialNumbers = new Array(10)
   .fill(null)
   .map((_, i) => ({ value: i, index: Math.random() }));
 
-const NumbersList = () => {
+export const Default = () => {
   const [numbers, setNumbers] = useState(initialNumbers);
 
   const add = () => {
@@ -137,7 +90,7 @@ const makeArr = () => {
     }));
 };
 
-const Sudoku = () => {
+export const Sudoku = () => {
   const [numbers, setNumbers] = useState(() => makeArr());
 
   return (
@@ -155,5 +108,3 @@ const Sudoku = () => {
     </>
   );
 };
-
-export default App;

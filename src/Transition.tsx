@@ -3,13 +3,18 @@ import React, {
   cloneElement,
   useCallback,
   useContext,
-  useLayoutEffect,
   useRef,
-  useState,
 } from "react";
 import { __DEV__ } from "./constants";
 import { TransitionGroupContext } from "./context";
-import { useIsMounted, useLatest, usePrevious } from "./hooks";
+import {
+  useIsMounted,
+  useLatest,
+  usePrevious,
+  useSafeState,
+  useCombinedRef,
+  useIsomorphicLayoutEffect as useLayoutEffect,
+} from "./hooks";
 import {
   addClass,
   nextFrame,
@@ -17,7 +22,6 @@ import {
   whenTransitionEnds,
   CSSTransitionType,
   once,
-  isFunction,
 } from "./utils";
 
 export interface TransitionProps {
@@ -57,19 +61,31 @@ export interface TransitionProps {
 const Transition = (props: TransitionProps) => {
   const context = useContext(TransitionGroupContext);
   const latestProps = useLatest(props);
-  const { visible, children, unmount = true } = props;
+  const { visible, children, unmount = true, nodeRef } = props;
 
-  const [localVisible, setLocalVisible] = useState(visible);
+  const [localVisible, setLocalVisible] = useSafeState(visible);
+
   const previousVisible = usePrevious(visible);
   // wrapping `localVisible` with ref to prevent unnecessary
   // effect calls
   const localVisibleRef = useLatest(localVisible);
 
-  const elRef = useRef<Element | null>(null);
   const isMounted = useIsMounted();
+  const elementRef = useRef<Element | null>(null);
+  const elementDisplay = useRef<string | null>(null);
   const finishEnter = useRef<((cancelled?: boolean) => void) | null>(null);
   const finishLeave = useRef<((cancelled?: boolean) => void) | null>(null);
-  const initialDisplay = useRef<string | null>(null);
+
+  const recordDisplayAndHide = useCallback(
+    (element: Element) => {
+      // unmount is always true unless user explicitly passed `false`
+      if (latestProps.current.unmount !== false) return;
+      const style = (element as HTMLElement).style;
+      elementDisplay.current = style.display;
+      style.display = "none";
+    },
+    [latestProps]
+  );
 
   const performEnter = useCallback(
     (el: Element) => {
@@ -96,18 +112,23 @@ const Transition = (props: TransitionProps) => {
         onAfterAppear = customAppear ? undefined : onAfterEnter,
         onAppearCancelled = customAppear ? undefined : onEnterCancelled,
       } = latestProps.current;
+
+      context?.register(el);
+
       // exit if no appear and component isn't mounted
       if (!appear && !isMounted.current) {
         return;
       }
+
       // technically it's appear transition, but the parent <TransitionGroup> is already
       // mounted
       const isAppear =
         appear && !isMounted.current && (context ? context.isAppearing : true);
+
       if (finishLeave.current) {
         finishLeave.current(true);
       }
-      context?.register(el);
+
       const [
         beforeHook,
         hook,
@@ -136,9 +157,8 @@ const Transition = (props: TransitionProps) => {
             enterToClass,
           ];
       beforeHook && beforeHook(el);
-      if (!unmount) {
-        // can we enter this branch without having initialDisplay?
-        (el as HTMLElement).style.display = initialDisplay.current || "";
+      if (!unmount && elementDisplay.current) {
+        (el as HTMLElement).style.display = elementDisplay.current;
       }
       addClass(el, fromClass, activeClass);
       hook && hook(el);
@@ -163,10 +183,10 @@ const Transition = (props: TransitionProps) => {
         finishEnter.current(true);
       }
       context?.unregister(el);
+
       const {
         type,
         name = "transition",
-        unmount = true,
         leaveFromClass = `${name}-leave-from`,
         leaveActiveClass = `${name}-leave-active`,
         leaveToClass = `${name}-leave-to`,
@@ -175,6 +195,7 @@ const Transition = (props: TransitionProps) => {
         onAfterLeave,
         onLeaveCancelled,
       } = latestProps.current;
+
       onBeforeLeave && onBeforeLeave(el);
       addClass(el, leaveFromClass);
       addClass(el, leaveActiveClass);
@@ -185,14 +206,12 @@ const Transition = (props: TransitionProps) => {
         const onEnd = (finishLeave.current = once((cancelled?: boolean) => {
           removeClass(el, leaveToClass);
           removeClass(el, leaveActiveClass);
-          if (isMounted.current) {
+
+          if (!cancelled) {
             setLocalVisible(false);
+            recordDisplayAndHide(el);
           }
-          if (!unmount) {
-            const s = (el as HTMLElement).style;
-            initialDisplay.current = s.display;
-            s.display = "none";
-          }
+
           const finishHook = cancelled ? onLeaveCancelled : onAfterLeave;
           finishHook && finishHook(el);
           finishLeave.current = null;
@@ -200,77 +219,62 @@ const Transition = (props: TransitionProps) => {
         whenTransitionEnds(el, onEnd, type);
       });
     },
-    [isMounted, latestProps, context]
+    [latestProps, context, isMounted, setLocalVisible, recordDisplayAndHide]
   );
 
+  // sync state action
   useLayoutEffect(() => {
-    const el = elRef.current;
     if (visible) {
-      if (el) {
-        // if component is mounted and `previousVisible.current` not
-        // equal to `localVisible` prop then it means
-        // that leave animation was cancelled and we
-        // should perform enter ourself because ref callback
-        // won't be called since element isn't unmounted.
-        if (
-          isMounted.current &&
-          previousVisible.current !== localVisibleRef.current
-        ) {
-          performEnter(el);
-        }
-        // TODO latestProps doesn't have a default values for props
-        else if (latestProps.current.unmount === false) {
-          performEnter(el);
-        }
-      }
-      setLocalVisible(true);
-    } else if (el) {
-      if (!isMounted.current) {
-        // it's not possible that we enter this branch with `unmount: true`
-        // because in this case the element wouldn't be rendered to the dom
-        /* istanbul ignore else */
-        if (latestProps.current.unmount === false) {
-          // add display none to element if the component
-          // isn't mounted but has `visible` prop set to `false`.
-          initialDisplay.current = (el as HTMLElement).style.display;
-          (el as HTMLElement).style.display = "none";
-        }
-        // do not run `performLeave` on initial render
-        return;
-      }
-      performLeave(el);
+      return setLocalVisible(true);
     }
+    const element = elementRef.current;
+    if (!element) return;
+    // TODO refactor this block
+    if (!isMounted.current) {
+      recordDisplayAndHide(element);
+      // do not run `performLeave` on initial render
+      return;
+    }
+    // we need to make an animation before exiting
+    performLeave(element);
   }, [
     visible,
-    performLeave,
-    performEnter,
-    previousVisible,
-    localVisibleRef,
     latestProps,
     isMounted,
+    setLocalVisible,
+    performLeave,
+    recordDisplayAndHide,
   ]);
 
-  const ref = useCallback(
-    (el: Element | null) => {
-      const { nodeRef, unmount = true } = latestProps.current;
-      if (nodeRef) {
-        isFunction(nodeRef) ? nodeRef(el) : (nodeRef.current = el);
-      }
-      elRef.current = el;
-      if (el) {
-        unmount && performEnter(el);
-        context?.register(el);
-      }
-    },
-    [performEnter, latestProps, context]
-  );
+  // enter after cancel
+  useLayoutEffect(() => {
+    const element = elementRef.current;
+    if (
+      element &&
+      isMounted.current &&
+      previousVisible.current !== localVisibleRef.current
+    ) {
+      performEnter(element);
+    }
+  }, [visible, previousVisible, localVisibleRef, isMounted, performEnter]);
+
+  // perform enter animation
+  useLayoutEffect(() => {
+    const element = elementRef.current;
+
+    if (element && localVisible) {
+      performEnter(element);
+    }
+  }, [localVisible, context, performEnter]);
+
+  const combinedRef = useCombinedRef(elementRef, nodeRef);
 
   if (unmount && !localVisible) return null;
 
-  let child: React.ReactElement;
-
   try {
-    child = Children.only(children);
+    return cloneElement(Children.only(children), {
+      ref: combinedRef,
+    });
   } catch {
     if (__DEV__) {
       throw new Error(
@@ -281,9 +285,6 @@ const Transition = (props: TransitionProps) => {
     }
     return null;
   }
-  return cloneElement(child, {
-    ref,
-  });
 };
 
 export default Transition;

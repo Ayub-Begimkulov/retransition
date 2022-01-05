@@ -1,44 +1,30 @@
-.fade {
-  &-enter-from,
-  &-leave-to {
-    // opacity: 0;
-    transform: translateX(300px);
-  }
-
-  &-enter-active,
-  &-leave-active {
-    transition: all 3000ms ease;
-  }
-
-  &-leave-active {
-    position: absolute;
-  }
-
-  &-enter-to,
-  &-leave-from {
-    transform: translateX(0px);
-    // opacity: 1;
-  }
-
-  &-move {
-    transition: transform 3000ms ease;
-  }
+.fade-enter-from,
+.fade-leave-to {
+  transform: translateX(300px);
 }
-
-.fade-animation {
-  &-enter-active {
-    animation: rotate-in 500ms ease;
-  }
-
-  &-leave-active {
-    animation: rotate-in 500ms ease reverse;
-  }
-
-  &-move {
-    transition: transform 500ms ease;
-  }
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 3000ms ease;
 }
-
+.fade-leave-active {
+  position: absolute;
+}
+.fade-enter-to,
+.fade-leave-from {
+  transform: translateX(0px);
+}
+.fade-move {
+  transition: transform 3000ms ease;
+}
+.fade-animation-enter-active {
+  animation: rotate-in 500ms ease;
+}
+.fade-animation-leave-active {
+  animation: rotate-in 500ms ease reverse;
+}
+.fade-animation-move {
+  transition: transform 500ms ease;
+}
 @keyframes rotate-in {
   0% {
     transform: scale(0) rotate(360deg);
@@ -47,18 +33,15 @@
     transform: scale(1) rotate(0);
   }
 }
-
 .transition-move {
   transition: transform 500ms ease;
 }
-
 .container {
   display: flex;
   flex-wrap: wrap;
-  width: 720px;
+  width: 240px;
   margin-top: 10px;
 }
-
 .cell {
   display: flex;
   justify-content: space-around;
@@ -69,37 +52,29 @@
   margin-right: -1px;
   margin-bottom: -1px;
 }
-
 .cell:nth-child(3n) {
   margin-right: 0;
 }
-
 .cell:nth-child(27n) {
   margin-bottom: 0;
 }
-
 .cell-move {
   transition: transform 2s;
 }
-
 .anim-leave-to,
 .anim-enter-from {
   opacity: 0;
 }
-
 .anim-enter-active {
   animation: enter 50ms ease 1;
 }
-
 .anim-leave-active {
   animation: leave 50ms ease 1 reverse;
 }
-
 .anim-leave-from,
 .anim-enter-to {
   opacity: 1;
 }
-
 @keyframes enter {
   0% {
     opacity: 0;
@@ -108,7 +83,6 @@
     opacity: 1;
   }
 }
-
 @keyframes leave {
   0% {
     opacity: 0;

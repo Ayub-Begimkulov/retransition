@@ -1,7 +1,9 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 
 export function useLatest<T>(value: T) {
   const latestRef = useRef<T>(value);
-  latestRef.current = value;
+  useLayoutEffect(() => {
+    latestRef.current = value;
+  });
   return latestRef;
 }

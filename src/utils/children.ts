@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { Children, ReactElement } from "react";
 import { hasOwn } from ".";
 
 type ChildMapping = Record<string, ReactElement>;
@@ -51,4 +51,46 @@ export function mergeChildMappings(prev: ChildMapping, next: ChildMapping) {
   }
 
   return childMapping;
+}
+
+// check whether the children are the same
+// using keys
+export function areChildrenEqual(
+  arr1: React.ReactElement[],
+  arr2: React.ReactElement[]
+) {
+  if (arr1 === arr2) return true;
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0, l = arr1.length; i < l; i++) {
+    if (arr1[i].key !== arr2[i].key) return false;
+  }
+  return true;
+}
+
+export function ensureChildrenKeys(children: ReactElement | ReactElement[]) {
+  const seen = new Set();
+  Children.forEach(children, child => {
+    if (!child.key) {
+      throw new Error(
+        "[retransition]: <TransitionGroup /> children must have unique keys."
+      );
+    }
+    if (seen.has(child.key)) {
+      throw new Error(
+        "[retransition]: Duplicate key " +
+          child.key +
+          ". <TransitionGroup /> children must have unique keys."
+      );
+    }
+    seen.add(child.key);
+  });
+}
+
+export function getElementProps(
+  child: ReactElement,
+  key: string,
+  defaultValue?: any
+) {
+  if (hasOwn(child.props, key)) return child.props[key];
+  return defaultValue;
 }
