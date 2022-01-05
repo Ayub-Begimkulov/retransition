@@ -4,15 +4,8 @@ import { setupPlaywright } from "./test-utils";
 declare const React: typeof global.React;
 
 describe("Transition", () => {
-  const {
-    page,
-    timeout,
-    nextFrame,
-    html,
-    classList,
-    isVisible,
-    makeRender,
-  } = setupPlaywright();
+  const { page, timeout, nextFrame, html, classList, isVisible, makeRender } =
+    setupPlaywright();
   const baseUrl = `file://${path.resolve(__dirname, "transition.html")}`;
 
   const duration = 50;
@@ -877,4 +870,6 @@ describe("Transition", () => {
     "`unmount: false, visible: false` shouldn't run enter animation on initial render"
     // async () => {}
   );
+
+  it.todo("should preserve elements display with unmount - false");
 });

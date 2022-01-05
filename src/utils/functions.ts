@@ -42,9 +42,8 @@ export function removeClass(el: Element, ...classes: string[]) {
   );
 }
 
-export function combine(...args: unknown[]) {
-  const fns = args.filter(isFunction);
-  return (arg: unknown) => {
-    fns.forEach(f => f(arg));
-  };
+export function removeArrayElement<T>(array: T[], element: T) {
+  const index = array.indexOf(element);
+  if (index < 0) return;
+  array.splice(index, 1);
 }
