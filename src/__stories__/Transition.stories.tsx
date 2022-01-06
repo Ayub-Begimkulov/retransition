@@ -15,7 +15,12 @@ export const Default = () => {
     <>
       <button onClick={() => setVisible(v => !v)}>Toggle</button>
       <Transition visible={visible} name="fade">
-        <div style={{ height: 200, width: 200, background: "black" }}></div>
+        {({ ref }) => (
+          <div
+            ref={ref}
+            style={{ height: 200, width: 200, background: "black" }}
+          ></div>
+        )}
       </Transition>
     </>
   );
@@ -28,7 +33,12 @@ export const CSSAnimation = () => {
     <>
       <button onClick={() => setVisible(v => !v)}>Toggle</button>
       <Transition visible={visible} name="fade-animation">
-        <div style={{ height: 200, width: 200, background: "black" }}></div>
+        {({ ref }) => (
+          <div
+            ref={ref}
+            style={{ height: 200, width: 200, background: "black" }}
+          ></div>
+        )}
       </Transition>
     </>
   );
@@ -47,14 +57,17 @@ export const DisplayNone = () => {
         appear
         unmount={false}
       >
-        <div
-          style={{
-            height: 200,
-            width: 200,
-            background: "black",
-            display: "flex",
-          }}
-        ></div>
+        {({ ref }) => (
+          <div
+            ref={ref}
+            style={{
+              height: 200,
+              width: 200,
+              background: "black",
+              display: "flex",
+            }}
+          ></div>
+        )}
       </Transition>
     </>
   );

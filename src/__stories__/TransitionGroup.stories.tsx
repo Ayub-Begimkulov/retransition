@@ -72,7 +72,11 @@ export const Default = () => {
         <TransitionGroup name="fade">
           {numbers.map(n => (
             <Transition key={n.index}>
-              <div style={{ padding: 5 }}>{n.value}</div>
+              {({ ref }) => (
+                <div ref={ref} style={{ padding: 5 }}>
+                  {n.value}
+                </div>
+              )}
             </Transition>
           ))}
         </TransitionGroup>
@@ -100,7 +104,11 @@ export const Sudoku = () => {
         <TransitionGroup name="cell">
           {numbers.map(({ id, number }) => (
             <Transition key={id}>
-              <div className="cell">{number}</div>
+              {({ ref }) => (
+                <div ref={ref} className="cell">
+                  {number}
+                </div>
+              )}
             </Transition>
           ))}
         </TransitionGroup>

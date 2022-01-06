@@ -1,5 +1,6 @@
 import path from "path";
 import { setupPlaywright } from "./test-utils";
+import type { TransitionProps } from "../src";
 
 declare const React: typeof global.React;
 
@@ -15,11 +16,12 @@ describe("Transition", () => {
 
   const render = makeRender(
     props => {
-      const { Transition } = (window as any).Retransition;
+      const Transition: React.FC<TransitionProps> = (window as any).Retransition
+        .Transition;
       return (
         <div id="container">
           <Transition {...props}>
-            <div id="transition-element"></div>
+            {({ ref }) => <div ref={ref} id="transition-element"></div>}
           </Transition>
         </div>
       );
@@ -753,7 +755,7 @@ describe("Transition", () => {
       ({ refType }) => {
         return new Promise(res => {
           const { React, ReactDOM, Retransition } = window as any;
-          const { Transition } = Retransition;
+          const Transition: React.FC<TransitionProps> = Retransition.Transition;
           const baseElement = document.querySelector("#app")!;
           let ref: any;
           const Component = () => {
@@ -769,7 +771,7 @@ describe("Transition", () => {
             }, []);
             return (
               <Transition visible={true} nodeRef={ref}>
-                <div>Hello world</div>
+                {({ ref }) => <div ref={ref}>Hello world</div>}
               </Transition>
             );
           };
@@ -784,7 +786,7 @@ describe("Transition", () => {
       ({ refType }) => {
         return new Promise(res => {
           const { React, ReactDOM, Retransition } = window as any;
-          const { Transition } = Retransition;
+          const Transition: React.FC<TransitionProps> = Retransition.Transition;
           const baseElement = document.querySelector("#app")!;
           let ref: any;
           const Component = ({ visible = true }) => {
@@ -794,7 +796,7 @@ describe("Transition", () => {
                 : (el: any) => (ref = { current: el });
             return visible ? (
               <Transition visible={true} nodeRef={ref}>
-                <div>Hello world</div>
+                {({ ref }) => <div ref={ref}>Hello world</div>}
               </Transition>
             ) : null;
           };
@@ -823,15 +825,9 @@ describe("Transition", () => {
     await page().evaluate(() => {
       return new Promise(res => {
         const { React, ReactDOM, Retransition } = window as any;
-        const { Transition } = Retransition;
+        const Transition: React.FC<TransitionProps> = Retransition.Transition;
         const baseElement = document.querySelector("#app")!;
-        // const original = console.error.bind(console);
-        // console.error = function (...args: any[]) {
-        //   args.forEach(arg =>
-        //     arg instanceof Error ? console.log(arg.message) : console.log(arg)
-        //   );
-        //   original(...args);
-        // };
+
         const Component = () => {
           const [visible, setVisible] = React.useState(true);
           const [renderNull, setRenderNull] = React.useState(false);
@@ -854,7 +850,7 @@ describe("Transition", () => {
 
           return (
             <Transition visible={visible} name="test">
-              <div>Hello world</div>
+              {({ ref }) => <div ref={ref}>Hello world</div>}
             </Transition>
           );
         };
