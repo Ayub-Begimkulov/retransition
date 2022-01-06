@@ -1,5 +1,14 @@
 import path from "path";
 import { setupPlaywright } from "./test-utils";
+import type { TransitionProps, TransitionGroupProps } from "../src";
+
+type TransitionComponent = React.FC<TransitionProps>;
+type TransitionGroupComponent = React.FC<TransitionGroupProps>;
+
+type RetransitionWindowBinding = {
+  Transition: TransitionComponent;
+  TransitionGroup: TransitionGroupComponent;
+};
 
 declare const React: typeof global.React;
 
@@ -24,14 +33,17 @@ describe("TransitionGroup", () => {
       ...rest
     }: {
       elements: number[];
+      transitionProps?: Partial<TransitionProps>;
       [key: string]: any;
     }) => {
-      const { TransitionGroup, Transition } = (window as any).Retransition;
+      const { TransitionGroup, Transition } = (window as any)
+        .Retransition as RetransitionWindowBinding;
+
       return (
         <TransitionGroup {...rest}>
           {elements.map(v => (
             <Transition key={v} {...transitionProps}>
-              <div>{v}</div>
+              {({ ref }) => <div ref={ref}>{v}</div>}
             </Transition>
           ))}
         </TransitionGroup>
@@ -476,7 +488,8 @@ describe("TransitionGroup", () => {
     const message = await page().evaluate(() => {
       return new Promise(res => {
         const { React, ReactDOM, Retransition } = window as any;
-        const { Transition, TransitionGroup } = Retransition;
+        const { Transition, TransitionGroup } =
+          Retransition as RetransitionWindowBinding;
         const baseElement = document.querySelector("#app")!;
         const arr = [1, 2];
         try {
@@ -484,7 +497,11 @@ describe("TransitionGroup", () => {
             <TransitionGroup>
               {arr.map(v => (
                 <Transition>
-                  <div id="test">{v}</div>
+                  {({ ref }) => (
+                    <div ref={ref} id="test">
+                      {v}
+                    </div>
+                  )}
                 </Transition>
               ))}
             </TransitionGroup>,
@@ -507,7 +524,8 @@ describe("TransitionGroup", () => {
     /* const message =  */ await page().evaluate(() => {
       return new Promise(res => {
         const { React, ReactDOM, Retransition } = window as any;
-        const { Transition, TransitionGroup } = Retransition;
+        const { Transition, TransitionGroup } =
+          Retransition as RetransitionWindowBinding;
         const baseElement = document.querySelector("#app")!;
         const arr = [1, 1];
         try {
@@ -515,7 +533,11 @@ describe("TransitionGroup", () => {
             <TransitionGroup>
               {arr.map(v => (
                 <Transition key={v}>
-                  <div id="test">{v}</div>
+                  {({ ref }) => (
+                    <div ref={ref} id="test">
+                      {v}
+                    </div>
+                  )}
                 </Transition>
               ))}
             </TransitionGroup>,
@@ -542,12 +564,13 @@ describe("TransitionGroup", () => {
         elements: { id: number; title: string }[];
         name: string;
       }) => {
-        const { TransitionGroup, Transition } = (window as any).Retransition;
+        const { TransitionGroup, Transition } = (window as any)
+          .Retransition as RetransitionWindowBinding;
         return (
           <TransitionGroup name={name}>
             {elements.map(v => (
               <Transition key={v.id}>
-                <div>{v.title}</div>
+                {({ ref }) => <div ref={ref}>{v.title}</div>}
               </Transition>
             ))}
           </TransitionGroup>

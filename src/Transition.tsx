@@ -1,10 +1,4 @@
-import React, {
-  Children,
-  cloneElement,
-  useCallback,
-  useContext,
-  useRef,
-} from "react";
+import React, { Children, useCallback, useContext, useRef } from "react";
 import { __DEV__ } from "./constants";
 import { TransitionGroupContext } from "./context";
 import {
@@ -55,7 +49,11 @@ export interface TransitionProps {
   onAppear?: (el: Element /* , done: () => void */) => void;
   onAfterAppear?: (el: Element) => void;
   onAppearCancelled?: (el: Element) => void;
-  children: React.ReactElement;
+  children: (props: TransitionChildrenProps) => React.ReactElement;
+}
+
+interface TransitionChildrenProps {
+  ref: (node: Element | null) => void;
 }
 
 const Transition = (props: TransitionProps) => {
@@ -272,9 +270,8 @@ const Transition = (props: TransitionProps) => {
   if (unmount && !localVisible) return null;
 
   try {
-    return cloneElement(Children.only(children), {
-      ref: combinedRef,
-    });
+    // TODO do we need this verification?
+    return Children.only(children({ ref: combinedRef }));
   } catch {
     if (__DEV__) {
       throw new Error(
